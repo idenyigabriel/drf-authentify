@@ -2,7 +2,7 @@
 
 <br />
 
-[![Test](https://github.com/idenyigabriel/drf-authentify/actions/workflows/main.yml/badge.svg)](https://github.com/idenyigabriel/drf-authentify/actions/workflows/main.yml)
+[![Test](https://github.com/idenyigabriel/drf-authentify/actions/workflows/test.yml/badge.svg)](https://github.com/idenyigabriel/drf-authentify/actions/workflows/test.yml)
 
 <br/>
 
@@ -20,7 +20,7 @@ drf authentify aims to be as simple as possible, while providing a great set of 
 
 ## Requirements
 
-- Python >3.6
+- Python >3.7
 - Django >3.2
 - djangorestframework 3
 
