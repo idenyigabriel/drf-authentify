@@ -46,7 +46,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/idenyigabriel/drf-authentify"
-Documentation = "https://github.com/idenyigabriel/drf-authentify/README.md"
+Documentation = "https://github.com/idenyigabriel/drf-authentify/blob/main/README.md"
 Repository = "https://github.com/idenyigabriel/drf-authentify"
 Issues = "https://github.com/idenyigabriel/drf-authentify/issues"
 Changelog = "https://github.com/idenyigabriel/drf-authentify/blob/main/CHANGELOG.md"
