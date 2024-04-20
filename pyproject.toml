@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools >= 40.8.0"]
+build-backend = 'setuptools.build_meta'
+
+
+[project]
+name = "drf-authentify"
+version = "0.3.3"
+description = "A simple authentication module for django rest framework"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+keywords = ["django", "djangorestframework", "drf", "authentication"]
+authors = [
+    {name = "Gabriel Idenyi"}
+]
+maintainers = []
+requires-python = ">=3.8"
+dependencies = [
+    "Django >= 3.2",
+    "djangorestframework >= 3.1",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Session",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/idenyigabriel/drf-authentify"
+Documentation = "https://github.com/idenyigabriel/drf-authentify/README.md"
+Repository = "https://github.com/idenyigabriel/drf-authentify"
+Issues = "https://github.com/idenyigabriel/drf-authentify/issues"
+Changelog = "https://github.com/idenyigabriel/drf-authentify/blob/main/CHANGELOG.md"
