@@ -1,3 +1,11 @@
+## 0.3.5
+
+Docs
+- update documentation
+
+Fixes:
+- auth class accessing invalid variable
+
 ## 0.3.4
 
 Fixes
