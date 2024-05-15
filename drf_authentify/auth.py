@@ -1,4 +1,3 @@
-from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import BaseAuthentication
 
@@ -41,7 +40,7 @@ class CookieAuthentication(BaseAuthentication):
         if authentify_settings.COOKIE_KEY in request.COOKIES:
             token_str = request.COOKIES[authentify_settings.COOKIE_KEY]
             if token_str:
-                token = AuthToken.verify_token(token, AUTH.COOKIE)
+                token = AuthToken.verify_token(token_str, AUTH.COOKIE)
                 if token:
                     return (token.user, token)
             raise AuthenticationFailed()

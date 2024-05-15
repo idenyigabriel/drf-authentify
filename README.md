@@ -38,7 +38,7 @@ The app should preferably go somewhere after your regular apps.
 ```python
 INSTALLED_APPS = (
     ...
-    'drf-authentify'
+    'drf_authentify'
 )
 ```
 
@@ -57,9 +57,9 @@ For a one type fits all case, you can globally alter the following settings, or 
 
 ```python
 DRF_AUTHENTIFY = {
-    ALLOWED_HEADER_PREFIXES = ["bearer", "token"] # default
-    TOKEN_EXPIRATION = 3000 # default
-    COOKIE_KEY = "token" # default
+    "ALLOWED_HEADER_PREFIXES": ["bearer", "token"] # default
+    "TOKEN_EXPIRATION": 3000 # default
+    "COOKIE_KEY": "token" # default
 }
 ```
 
