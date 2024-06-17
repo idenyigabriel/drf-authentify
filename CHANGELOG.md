@@ -1,3 +1,9 @@
+## 0.3.6
+
+Fixes:
+- auth class accessing wrong method
+- update authenticate_header on auth classes
+
 ## 0.3.5
 
 Docs
