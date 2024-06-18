@@ -1,3 +1,8 @@
+## 0.3.7
+
+Fixes:
+- Token auth class checking wrong condition in authenticate_header method.
+
 ## 0.3.6
 
 Fixes:

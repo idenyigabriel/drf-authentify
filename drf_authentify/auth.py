@@ -25,7 +25,7 @@ class TokenAuthentication(BaseAuthentication):
             prefix.lower() for prefix in authentify_settings.ALLOWED_HEADER_PREFIXES
         ]
 
-        if not auth or len(auth) != 2 or auth[0].lower() in allowed_prefixes:
+        if not auth or len(auth) != 2 or auth[0].lower() not in allowed_prefixes:
             return None
         return auth[1]
 
