@@ -1,3 +1,8 @@
+## 0.3.9
+
+Fixes:
+- Fix error in Auth class' authentication_header method.
+
 ## 0.3.8
 
 Features:

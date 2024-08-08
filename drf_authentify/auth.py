@@ -25,14 +25,7 @@ class TokenAuthentication(BaseAuthentication):
         return None
 
     def authenticate_header(self, request):
-        auth = request.META["HTTP_AUTHORIZATION"].split()
-        allowed_prefixes = [
-            prefix.lower() for prefix in authentify_settings.ALLOWED_HEADER_PREFIXES
-        ]
-
-        if not auth or len(auth) != 2 or auth[0].lower() not in allowed_prefixes:
-            return None
-        return auth[1]
+        return 'Authorization header="api"'
 
 
 class CookieAuthentication(BaseAuthentication):
@@ -55,4 +48,4 @@ class CookieAuthentication(BaseAuthentication):
         return None
 
     def authenticate_header(self, request):
-        return request.COOKIES[authentify_settings.COOKIE_KEY]
+        return 'HTTP cookie="api"'
