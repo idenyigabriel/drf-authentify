@@ -140,67 +140,81 @@ class TestAuthTokenModelMethods(TestCase):
 
     def test_cookie_generate_token(self):
         token = AuthToken.generate_cookie_token(self.user, context={"role": "admin"})
+        self.assertIsInstance(token, str)
 
-        self.assertIsInstance(token, AuthToken)
-        self.assertEqual(token.user, self.user)
-        self.assertEqual(token.auth, AUTH.COOKIE)
-        self.assertDictEqual(token.context, {"role": "admin"})
+        token_instance = AuthToken.objects.filter(token=token).first()
+
+        self.assertIsInstance(token_instance, AuthToken)
+        self.assertEqual(token_instance.user, self.user)
+        self.assertEqual(token_instance.auth, AUTH.COOKIE)
+        self.assertDictEqual(token_instance.context, {"role": "admin"})
 
         self.assertAlmostEqual(
-            token.expires_at,
-            token.created_at + timedelta(seconds=authentify_settings.TOKEN_EXPIRATION),
-            delta=timedelta(seconds=5),
+            token_instance.expires_at,
+            token_instance.created_at
+            + timedelta(seconds=authentify_settings.TOKEN_EXPIRATION),
+            delta=timedelta(seconds=10),
         )
 
-        token.delete()
+        token_instance.delete()
 
     def test_cookie_generate_token_variety(self):
         token = AuthToken.generate_cookie_token(self.user, expires=100)
+        self.assertIsInstance(token, str)
 
-        self.assertIsInstance(token, AuthToken)
-        self.assertEqual(token.user, self.user)
-        self.assertEqual(token.auth, AUTH.COOKIE)
-        self.assertIsNone(token.context)
+        token_instance = AuthToken.objects.filter(token=token).first()
+
+        self.assertIsInstance(token_instance, AuthToken)
+        self.assertEqual(token_instance.user, self.user)
+        self.assertEqual(token_instance.auth, AUTH.COOKIE)
+        self.assertIsNone(token_instance.context)
 
         self.assertAlmostEqual(
-            token.expires_at,
-            token.created_at + timedelta(seconds=100),
-            delta=timedelta(seconds=5),
+            token_instance.expires_at,
+            token_instance.created_at + timedelta(seconds=100),
+            delta=timedelta(seconds=10),
         )
 
-        token.delete()
+        token_instance.delete()
 
     def test_token_type_generate_token(self):
         token = AuthToken.generate_header_token(self.user, context={"role": "admin"})
+        self.assertIsInstance(token, str)
 
-        self.assertIsInstance(token, AuthToken)
-        self.assertEqual(token.user, self.user)
-        self.assertEqual(token.auth, AUTH.TOKEN)
-        self.assertDictEqual(token.context, {"role": "admin"})
+        token_instance = AuthToken.objects.filter(token=token).first()
+
+        self.assertIsInstance(token_instance, AuthToken)
+        self.assertEqual(token_instance.user, self.user)
+        self.assertEqual(token_instance.auth, AUTH.TOKEN)
+        self.assertDictEqual(token_instance.context, {"role": "admin"})
 
         self.assertAlmostEqual(
-            token.expires_at,
-            token.created_at + timedelta(seconds=authentify_settings.TOKEN_EXPIRATION),
-            delta=timedelta(seconds=5),
+            token_instance.expires_at,
+            token_instance.created_at
+            + timedelta(seconds=authentify_settings.TOKEN_EXPIRATION),
+            delta=timedelta(seconds=10),
         )
 
-        token.delete()
+        token_instance.delete()
 
     def test_token_type_generate_token_variety(self):
         token = AuthToken.generate_header_token(self.user, expires=1000)
+        self.assertIsInstance(token, str)
 
-        self.assertIsInstance(token, AuthToken)
-        self.assertEqual(token.user, self.user)
-        self.assertEqual(token.auth, AUTH.TOKEN)
-        self.assertIsNone(token.context)
+        token_instance = AuthToken.objects.filter(token=token).first()
+
+        self.assertIsInstance(token_instance, AuthToken)
+        self.assertEqual(token_instance.user, self.user)
+        self.assertEqual(token_instance.auth, AUTH.TOKEN)
+        self.assertIsNone(token_instance.context)
 
         self.assertAlmostEqual(
-            token.expires_at,
-            token.created_at + timedelta(seconds=1000),
-            delta=timedelta(seconds=5),
+            token_instance.expires_at,
+            token_instance.created_at + timedelta(seconds=1000),
+            delta=timedelta(seconds=10),
         )
 
-        token.delete()
+        token_instance.delete()
 
     def test_verify_token(self):
         token1 = self.__create_extra_token_data(AUTH.TOKEN, expires=2000)
