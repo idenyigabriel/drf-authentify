@@ -46,9 +46,10 @@ class AuthToken(models.Model):
         default_expiration = authentify_settings.TOKEN_EXPIRATION
         expires = timezone.now() + timedelta(seconds=expires or default_expiration)
         token = secrets.token_urlsafe()
-        return cls.objects.create(
+        cls.objects.create(
             token=token, user=user, context=context, auth=auth, expires_at=expires
         )
+        return token
 
     @classmethod
     def generate_cookie_token(
@@ -65,7 +66,9 @@ class AuthToken(models.Model):
         return cls.__generate_token(user, AUTH.TOKEN, context=context, expires=expires)
 
     @classmethod
-    def verify_token(cls, token: str, auth: AUTH) -> object:
+    def verify_token(cls, token: str, auth: AUTH = None) -> object:
         """Verify token validity"""
         now = timezone.now()
+        if not auth:
+            return cls.objects.filter(token=token, expires_at__gt=now).first()
         return cls.objects.filter(token=token, auth=auth, expires_at__gt=now).first()

@@ -57,9 +57,10 @@ For a one type fits all case, you can globally alter the following settings, or 
 
 ```python
 DRF_AUTHENTIFY = {
-    "ALLOWED_HEADER_PREFIXES": ["bearer", "token"] # default
-    "TOKEN_EXPIRATION": 3000 # default
-    "COOKIE_KEY": "token" # default
+    "COOKIE_KEY": "token", 
+    "TOKEN_EXPIRATION": 3000,
+    "ENABLE_AUTH_RESTRICTION": False,
+    "ALLOWED_HEADER_PREFIXES": ["bearer", "token"],
 }
 ```
 
@@ -70,6 +71,8 @@ DRF_AUTHENTIFY = {
 - COOKIE_KEY: With this, you can customize what key we should use to retrieve your authentication cookie frmo each request. We will also validate this when you apply our authentication scheme `drf_authentify.auth.CookieAuthentication` as shown below.
 
 - TOKEN_EXPIRATION: With this you can globally set the duration of each token generated, this can also be set per view, as you would see below.
+
+- ENABLE_AUTH_RESTRICTION: This can be used to disable/enable checks for authorization channels (cookie or authorization header). 
 
 > **Note:**
 > Do not forget to add custom header prefixes to your cors-header as this could cause cors errors.

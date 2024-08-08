@@ -1,4 +1,3 @@
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import BaseAuthentication
 
 from drf_authentify.choices import AUTH
@@ -13,10 +12,16 @@ class TokenAuthentication(BaseAuthentication):
         if "HTTP_AUTHORIZATION" in request.META:
             token_str = self.authenticate_header(request)
             if token_str:
-                token = AuthToken.verify_token(token_str, AUTH.TOKEN)
+
+                # if auth restriction is enabled, then filter for token with token auth
+                if authentify_settings.ENABLE_AUTH_RESTRICTION:
+                    token = AuthToken.verify_token(token_str, AUTH.TOKEN)
+                else:
+                    token = AuthToken.verify_token(token_str)
+
                 if token:
                     return (token.user, token)
-            raise AuthenticationFailed()
+
         return None
 
     def authenticate_header(self, request):
@@ -37,10 +42,16 @@ class CookieAuthentication(BaseAuthentication):
         if authentify_settings.COOKIE_KEY in request.COOKIES:
             token_str = request.COOKIES[authentify_settings.COOKIE_KEY]
             if token_str:
-                token = AuthToken.verify_token(token_str, AUTH.COOKIE)
+
+                # if auth restriction is enabled, then filter for token with auth
+                if authentify_settings.ENABLE_AUTH_RESTRICTION:
+                    token = AuthToken.verify_token(token_str, AUTH.COOKIE)
+                else:
+                    token = AuthToken.verify_token(token_str)
+
                 if token:
                     return (token.user, token)
-            raise AuthenticationFailed()
+
         return None
 
     def authenticate_header(self, request):
