@@ -10,8 +10,13 @@ class TokenAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         if "HTTP_AUTHORIZATION" in request.META:
-            token_str = self.authenticate_header(request)
-            if token_str:
+            auth = request.META["HTTP_AUTHORIZATION"].split()
+            allowed_prefixes = [
+                prefix.lower() for prefix in authentify_settings.ALLOWED_HEADER_PREFIXES
+            ]
+
+            if auth and len(auth) == 2 and auth[0].lower() in allowed_prefixes:
+                token_str  = auth[1]
 
                 # if auth restriction is enabled, then filter for token with token auth
                 if authentify_settings.ENABLE_AUTH_RESTRICTION:
