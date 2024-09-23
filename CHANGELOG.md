@@ -1,3 +1,8 @@
+## 0.3.10
+
+Fixes:
+- Fix error in TokenAuthentication class' authenticate method (accidentally forgot to update this after method authentication_header was changed).
+
 ## 0.3.9
 
 Fixes:
