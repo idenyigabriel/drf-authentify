@@ -1,3 +1,8 @@
+## 0.3.11
+
+Fixes:
+- Fix pypi unexisting document
+
 ## 0.3.10
 
 Fixes:
