@@ -1,136 +1,147 @@
-# DRF Authentify Documentation
-
-<br />
+# DRF Authentify
 
 [![Build Status](https://github.com/idenyigabriel/drf-authentify/actions/workflows/test.yml/badge.svg)](https://github.com/idenyigabriel/drf-authentify/actions/workflows/test.yml)
-<br/>
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-[drf-authentify](https://github.com/idenyigabriel/drf-authentify) is a near splitting replica of the simple django rest framework default token system, except better.
-
-The major difference between `django rest framework` default token and `drf-authentify` are:
-
-- `drf-authentify` allows multiple tokens per users
-- `drf-authentify` adds extra security layer by using access validation
-- bonus: drf-authentify provides utility methods to handle common use cases.
-
-drf authentify aims to be as simple as possible, while providing a great set of features to meet your authentication demands without enforcing a certain pattern to your application flow.
+**[drf-authentify](https://github.com/idenyigabriel/drf-authentify)** is a near drop-in replacement for Django REST Framework’s default token authentication—except better.
 
 
-## Requirements
+---
+## 🚀 Why Use `drf-authentify`?
 
-- Python >=3.8
-- Django >=3.2
-- djangorestframework 3
+Compared to the default DRF token system, `drf-authentify` offers several key improvements:
 
+- 🔑 **Multiple tokens per user**
+- 🔐 **Enhanced security** with contextual access validation
+- ⚙️ **Utility methods** for creating, revoking, and managing tokens
+- 🧩 **Unopinionated design**—integrate it your way
 
-## Installation
+It is built to be simple, extensible, and flexible enough to meet modern authentication needs.
 
-Installation is easy using `pip` and will install all required libraries
+---
+## 📦 Requirements
+
+- Python ≥ 3.8  
+- Django ≥ 3.2  
+- Django REST Framework ≥ 3.0
+
+---
+## ⚙️ Installation
+
+Install via pip:
+
+```bash
+pip install drf-authentify
+```
+
+Add it to your INSTALLED_APPS:
 
 ```python
-$ pip install drf-authentify
+INSTALLED_APPS = [
+    # your existing apps...
+    'drf_authentify',
+]
 ```
+Run migrations:
 
-Then add the `drf-authentify` to your project by including the app to your `INSTALLED_APPS`.
-
-The app should preferably go somewhere after your regular apps.
-
-```python
-INSTALLED_APPS = (
-    ...
-    'drf_authentify'
-)
+```bash
+python manage.py migrate
 ```
+Once installed, a new AuthToken model will appear in your Django admin for token management.
 
-`drf-authentify` adds a model to your admin section called AuthToken, with this you can view and manage all tokens created on your applications. We already have a nice setup for you on django admin section.
+---
+## ⚙️ Global Configuration
 
-Finally migrate all database entries.
-
-```
-$ python3 manage.py migrate
-```
-
-
-## Global Configuration
-
-For a one type fits all case, you can globally alter the following settings, or leave the default as it is.
+Customize behavior in settings.py using the DRF_AUTHENTIFY config:
 
 ```python
 DRF_AUTHENTIFY = {
     "COOKIE_KEY": "token", 
+    "ALLOWED_HEADER_PREFIXES": ["bearer", "token"],
     "TOKEN_EXPIRATION": 3000,
     "ENABLE_AUTH_RESTRICTION": False,
-    "ALLOWED_HEADER_PREFIXES": ["bearer", "token"],
+    "STRICT_CONTEXT_PARAMS_ACCESS": False,
 }
 ```
 
-## Customizing Tokens
+### Setting Descriptions
 
-- ALLOWED_HEADER_PREFIXES: Here you can provide a list of prefixes that are allowed for your authentication header. We will validate this when you apply our authentication scheme `drf_authentify.auth.TokenAuthentication` as shown below.
-
-- COOKIE_KEY: With this, you can customize what key we should use to retrieve your authentication cookie frmo each request. We will also validate this when you apply our authentication scheme `drf_authentify.auth.CookieAuthentication` as shown below.
-
-- TOKEN_EXPIRATION: With this you can globally set the duration of each token generated, this can also be set per view, as you would see below.
-
-- ENABLE_AUTH_RESTRICTION: This can be used to disable/enable checks for authorization channels (cookie or authorization header). 
+- COOKIE_KEY: Key name used to retrieve tokens from cookies.
+- ALLOWED_HEADER_PREFIXES: Acceptable prefixes for the Authorization header.
+- TOKEN_EXPIRATION: Default expiration time (in seconds) for new tokens.
+- ENABLE_AUTH_RESTRICTION: Restricts a token to only its creation channel (header/cookie).
+- STRICT_CONTEXT_PARAMS_ACCESS: Enforces error raising on undefined context_obj keys.
 
 > **Note:**
-> Do not forget to add custom header prefixes to your cors-header as this could cause cors errors.
+> ⚠️ Don’t forget to allow any custom header prefixes in your CORS settings to avoid CORS errors.
 
+---
+## 🔐 Creating Tokens
 
-## Creating Tokens
-
-Two utility methods have been provided for you to leverage for creating or generating user tokens on `drf-authentify`. For ease, they are attached to the AuthToken model class.
-
-```python
-from drf_authentify.models import AuthToken
-
-def sample_view(request, *arg, **kwargs):
-    token = AuthToken.generate_cookie_token(user, context=None, expires=3000)
-
-def sample_view(request, *arg, **kwargs):
-    token = AuthToken.generate_header_token(user, context=None, expires=3000)
-
-```
-
-`drf-authentify` allows you to save contexts alongside your tokens if you need to, also feel free to alter the duration of a token validity using the expires parameters, we'll use the globally set `TOKEN_EXPIRATION` or default if none is provided.
-
-
-## Deleting Tokens
-
-To delete tokens, simply use one of the three utility methods provides on the AuthToken class.
+Use utility methods from TokenService:
 
 ```python
-from drf_authentify.utils import clear_request_tokens, delete_request_token, clear_expired_tokens, clear_user_tokens
+from drf_authentify.services import TokenService
 
-# Remove single token based on request authenticated user
-delete_request_token(request) 
+# Header-based token
+token = TokenService.generate_header_token(user, context=None, expires=3000)
 
-# Remove all user tokens based on request authenticated user
-clear_request_tokens(request) 
-
-# Remove all tokens for user
-clear_user_tokens(user) 
-
-# Remove all expired tokens
-clear_expired_tokens()
+# Cookie-based token
+token = TokenService.generate_cookie_token(user, context=None, expires=3000)
 ```
 
+### Contextual Tokens
 
-## Authentication Schemes
+You can optionally attach a context dictionary to any token and customize its expiration using the expires parameter. If not set, the default global TOKEN_EXPIRATION is used.
 
-drf authentify provides you with two authentication classes to cover for both broad type of tokens you can generate. These are very import in django rest framework, and can be used either globally or per view.
+> **Note:**
+> If `ENABLE_AUTH_RESTRICTION` is True, a token created for cookie use cannot be used in a header and vice versa.
+
+---
+## 🧹 Revoking Tokens
+
+You can revoke tokens in several ways:
+
+```python
+from drf_authentify.services import TokenService
+
+# Revoke token tied to the current request
+TokenService.revoke_token_from_request(request)
+
+# Revoke all tokens for the user in the request
+TokenService.revoke_all_tokens_for_user_from_request(request)
+
+# Revoke all tokens for a specific user
+TokenService.revoke_all_user_tokens(request.user)
+
+# Revoke all expired tokens (useful for cleanup)
+TokenService.revoke_expired_tokens()
+```
+
+---
+## 🛡️ Authentication Classes
+
+drf-authentify provides two authentication classes:
 
 ```python
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'drf_authentify.auth.CookieAuthentication',
-        'drf_authentify.auth.TokenAuthentication',
+        'drf_authentify.auth.AuthorizationHeaderAuthentication',
     ]
 }
 ```
+These can be used globally or at the view level.
 
-By adding this, you can appriopriately check for authentication status and return the user on the request object.
+---
+## 🔍 Accessing the Current Token and Context
 
-> **Note:**
-> For convenience, you can access the current token object in your authenticated view through request.auth, this would allow easy access context which can be used to store authorization scope and other important data.
+Inside an authenticated view:
+
+```python
+def sample_view(request):
+    user = request.user            # Authenticated user
+    token = request.auth           # AuthToken instance
+    context = token.context        # Context dictionary
+    scope = token.context_obj      # Access as object
+```
