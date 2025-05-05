@@ -1,52 +1,68 @@
-## 0.3.11
+## [0.4] - 2025-05-05
 
-Fixes:
-- Fix pypi unexisting document
+### Changed
+- Renamed `AUTH` to `AUTHTYPE_CHOICES` for improved clarity.
+- Updated `AUTHTYPE_CHOICES` values from `'token'` and `'cookie'` to `'header'` and `'cookie'`.
+- Renamed `_context` field (a `TextField`) to `context` and changed its type to `JSONField`.
 
-## 0.3.10
+### Added
+- Introduced `TokenService` class and moved token generation and revocation logic out of the `AuthModel`.
+- Added `context_obj` property to allow dot-notation access to context data.
+- Added `as_dict()` method to convert context to a dictionary.
+- Added validation for the `context` field.
+- Added additional test cases to improve test coverage and robustness.
+- Added `STRICT_CONTEXT_PARAMS_ACCESS` setting to handle whether or not to raise an error when unexisting context param is accessed via context_obj property.
 
-Fixes:
-- Fix error in TokenAuthentication class' authenticate method (accidentally forgot to update this after method authentication_header was changed).
+## [0.3.11]
 
-## 0.3.9
+### Fixed
+- Fixed issue with non-existing document on PyPI.
 
-Fixes:
-- Fix error in Auth class' authentication_header method.
+## [0.3.10]
 
-## 0.3.8
+### Fixed
+- Fixed error in `TokenAuthentication.authenticate` method (was not updated after `authentication_header` method was changed).
 
-Features:
-- Add new setting configuration "ENABLE_AUTH_RESTRICTION" to allow users enable/disable channel restrictions.
+## [0.3.9]
 
-Fixes:
-- Auth classes no longer raise errors on failure, this function will now be left to DRF permission classes.
-- Update AuthToken private method __generate_token to return token string not token instance.
+### Fixed
+- Fixed error in `Auth.authentication_header` method.
 
-## 0.3.7
+## [0.3.8]
 
-Fixes:
-- Token auth class checking wrong condition in authenticate_header method.
+### Added
+- Added `ENABLE_AUTH_RESTRICTION` setting to allow users to enable or disable channel restrictions.
 
-## 0.3.6
+### Fixed
+- Auth classes no longer raise errors on failure; responsibility is now delegated to DRF permission classes.
+- Updated `AuthToken.__generate_token()` to return token string instead of token instance.
 
-Fixes:
-- auth class accessing wrong method
-- update authenticate_header on auth classes
+## [0.3.7]
 
-## 0.3.5
+### Fixed
+- Fixed condition check in `authenticate_header` method of token auth class.
 
-Docs
-- update documentation
+## [0.3.6]
 
-Fixes:
-- auth class accessing invalid variable
+### Fixed
+- Fixed auth class accessing the wrong method.
+- Updated `authenticate_header` in auth classes.
 
-## 0.3.4
+## [0.3.5]
 
-Fixes
-- documentation urls on pyproject.toml
-- changelog urls on pyproject.toml
+### Docs
+- Updated documentation.
 
-## 0.3.0
+### Fixed
+- Fixed auth class accessing an invalid variable.
 
-Beta Release
+## [0.3.4]
+
+### Fixed
+- Fixed documentation URLs in `pyproject.toml`.
+- Fixed changelog URLs in `pyproject.toml`.
+
+## [0.3.0]
+
+### Added
+- Initial beta release.

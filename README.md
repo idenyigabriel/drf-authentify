@@ -66,7 +66,7 @@ DRF_AUTHENTIFY = {
 
 ## Customizing Tokens
 
-- ALLOWED_HEADER_PREFIXES: Here you can provide a list of prefixes that are allowed for your authentication header. We will validate this when you apply our authentication scheme `drf_authentify.auth.TokenAuthentication` as shown below.
+- ALLOWED_HEADER_PREFIXES: Here you can provide a list of prefixes that are allowed for your authentication header. We will validate this when you apply our authentication scheme `drf_authentify.auth.AuthHeaderAuthentication` as shown below.
 
 - COOKIE_KEY: With this, you can customize what key we should use to retrieve your authentication cookie frmo each request. We will also validate this when you apply our authentication scheme `drf_authentify.auth.CookieAuthentication` as shown below.
 
@@ -125,7 +125,7 @@ drf authentify provides you with two authentication classes to cover for both br
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'drf_authentify.auth.CookieAuthentication',
-        'drf_authentify.auth.TokenAuthentication',
+        'drf_authentify.auth.AuthHeaderAuthentication',
     ]
 }
 ```

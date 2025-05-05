@@ -10,6 +10,7 @@ DEFAULTS = {
     "TOKEN_EXPIRATION": 3000,
     "COOKIE_KEY": "token",
     "ENABLE_AUTH_RESTRICTION": False,
+    "STRICT_CONTEXT_PARAMS_ACCESS": False,
 }
 
 authentify_settings = APISettings(USER_SETTINGS, DEFAULTS)
