@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model, authenticate
 
 from sample_project.utils import set_cookie
-from drf_authentify.models import AuthToken
+from drf_authentify.services import TokenService
 from sample_project.serializers import LoginSerializer, UserSerializer
 
 
@@ -27,12 +27,30 @@ class LoginView(APIView):
 
         user = authenticate(request=request, username=username, password=password)
         if user:
-            token = AuthToken.generate_header_token(user)
+            # token = TokenService.generate_header_token(user)
+
+            # optionally, you can specify a custom expiration time for token,
+            # and also include context if you require.
+            # token = TokenService.generate_header_token(
+            #     user, context={"scope": "global", "provider": "google"}, expires_in=7200
+            # )
+
+            # To generate token for cookies, simply use any of the following, same signature as used above also apply
+            # to specify contexts and duration.
+            # token = TokenService.generate_cookie_token(user)
+            token = TokenService.generate_cookie_token(
+                user, context={"scope": "global", "provider": "google"}, expires_in=3600
+            )
 
             data = dict()
             data["status"] = "success"
             data["message"] = "Login successful."
-            data["data"] = UserSerializer(user).data
+
+            # for header tokens
+            data["data"] = {"token": token, "user": UserSerializer(user).data}
+            # return Response(data, status=status.HTTP_200_OK)
+
+            # or set as cookie on response for cookie tokens
             response = Response(data, status=status.HTTP_200_OK)
             return set_cookie(response, token=token)
 
@@ -44,7 +62,17 @@ class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        AuthToken.remove_token_by_request(request)
+        # revoke single token from request using:
+        TokenService.revoke_token_from_request(request)
+
+        # Or revoke all tokens for user from request using:
+        # TokenService.revoke_all_tokens_for_user_from_request(request)
+
+        # Or revoke all tokens for user using:
+        # TokenService.revoke_all_user_tokens(request.user)
+
+        # Or revoke all expired tokens, to clean up space for example using:
+        # TokenService.revoke_expired_tokens()
 
         data = dict()
         data["status"] = "success"
@@ -54,29 +82,20 @@ class LogoutView(APIView):
         return set_cookie(response, token="", duration=0)
 
 
-class LogoutAllView(APIView):
+class AccountView(APIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, *args, **kwargs):
-        AuthToken.remove_all_tokens_by_request(request)
+    def get(self, request, *args, **kwargs):
+        # How to access your current auth token instance.
+        # print(request.user)
+        # print(request.auth)
+        # print(request.auth.context)
+        # print(request.auth.context_obj.scope)
+        # print(request.auth.context_obj.provider)
+        # print(request.auth.context_obj.invalid_key)
 
         data = dict()
         data["status"] = "success"
-        data["message"] = "Logout all successful."
-        data["data"] = None
-        response = Response(data, status=status.HTTP_204_NO_CONTENT)
-        return set_cookie(response, token="", duration=0)
-
-
-class LogoutByUserView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, *args, **kwargs):
-        AuthToken.remove_all_tokens_by_user(request.user)
-
-        data = dict()
-        data["status"] = "success"
-        data["message"] = "Logout by user successful."
-        data["data"] = None
-        response = Response(data, status=status.HTTP_204_NO_CONTENT)
-        return set_cookie(response, token="", duration=0)
+        data["message"] = "Logout successful."
+        data["data"] = UserSerializer(request.user).data
+        return Response(data, status=status.HTTP_204_NO_CONTENT)

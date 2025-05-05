@@ -6,10 +6,11 @@ from rest_framework.settings import APISettings
 USER_SETTINGS = getattr(settings, "DRF_AUTHENTIFY", None)
 
 DEFAULTS = {
+    "COOKIE_KEY": "token",
     "ALLOWED_HEADER_PREFIXES": ["bearer", "token"],
     "TOKEN_EXPIRATION": 3000,
-    "COOKIE_KEY": "token",
     "ENABLE_AUTH_RESTRICTION": False,
+    "STRICT_CONTEXT_PARAMS_ACCESS": False,
 }
 
 authentify_settings = APISettings(USER_SETTINGS, DEFAULTS)
