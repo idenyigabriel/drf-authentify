@@ -61,6 +61,7 @@ DRF_AUTHENTIFY = {
     "TOKEN_EXPIRATION": 3000,
     "ENABLE_AUTH_RESTRICTION": False,
     "STRICT_CONTEXT_PARAMS_ACCESS": False,
+    "MAX_TOKEN_CREATION_ATTEMPTS": 5
 }
 ```
 
@@ -71,6 +72,7 @@ DRF_AUTHENTIFY = {
 - TOKEN_EXPIRATION: Default expiration time (in seconds) for new tokens.
 - ENABLE_AUTH_RESTRICTION: Restricts a token to only its creation channel (header/cookie).
 - STRICT_CONTEXT_PARAMS_ACCESS: Enforces error raising on undefined context_obj keys.
+- MAX_TOKEN_CREATION_ATTEMPTS: The maximum number of times drf_authentify will attempt to generate a unique token before failing. This acts as a failsafe — while Python’s secrets module provides cryptographic randomness, it does not guarantee uniqueness, so this limit ensures we avoid infinite loops in the rare event of a collision.
 
 > **Note:**
 > ⚠️ Don’t forget to allow any custom header prefixes in your CORS settings to avoid CORS errors.

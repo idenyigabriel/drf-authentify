@@ -7,6 +7,7 @@ USER_SETTINGS = getattr(settings, "DRF_AUTHENTIFY", None)
 
 DEFAULTS = {
     "COOKIE_KEY": "token",
+    "MAX_TOKEN_CREATION_ATTEMPTS": 5,
     "ALLOWED_HEADER_PREFIXES": ["bearer", "token"],
     "TOKEN_EXPIRATION": 3000,
     "ENABLE_AUTH_RESTRICTION": False,

@@ -2,14 +2,15 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from drf_authentify.utils import generate_token
 from drf_authentify.context import ContextParams
 from drf_authentify.choices import AUTHTYPE_CHOICES
 from drf_authentify.validators import validate_dict
 
 
 class AuthToken(models.Model):
-    token = models.CharField(max_length=255, unique=True)
     auth_type = models.CharField(max_length=6, choices=AUTHTYPE_CHOICES.choices)
+    token = models.CharField(max_length=255, unique=True, default=generate_token)
     context = models.JSONField(default=dict, validators=[validate_dict], blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="auth_tokens"
