@@ -16,11 +16,12 @@ class AuthTokenAdminForm(forms.ModelForm):
     class Meta:
         model = AuthToken
         fields = [
-            "user",
             "auth_type",
+            "user",
             "context",
             "expires_at",
             "refresh_until",
+            "last_refreshed_at",
         ]
 
     def save(self, commit=True):

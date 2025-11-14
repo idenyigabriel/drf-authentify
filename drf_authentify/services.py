@@ -1,7 +1,9 @@
 from datetime import timedelta
 
 from django.utils import timezone
+
 from drf_authentify.choices import AUTH_TYPES
+from drf_authentify.types import GeneratedToken
 from drf_authentify.settings import authentify_settings
 from drf_authentify.utils import generate_token_string_hash
 from drf_authentify.models import TokenType, get_token_model
@@ -15,7 +17,7 @@ class TokenService:
     @staticmethod
     def _generate_auth_token(
         user, auth_type: AUTH_TYPES, context: dict = None, expires_in: timedelta = None
-    ) -> TokenType:
+    ) -> GeneratedToken:
         """
         Generate and return a token and refresh token (if applicable), based on the auth type and expiration settings.
         Accepts expires_in as a timedelta object.
@@ -27,7 +29,7 @@ class TokenService:
     @staticmethod
     def generate_cookie_token(
         user, context: dict = None, expires_in: int = None
-    ) -> TokenType:
+    ) -> GeneratedToken:
         """
         Generate a cookie token with an optional expiration time (in seconds).
         """
@@ -39,7 +41,7 @@ class TokenService:
     @staticmethod
     def generate_header_token(
         user, context: dict = None, expires_in: int = None
-    ) -> TokenType:
+    ) -> GeneratedToken:
         """
         Generate a header token with an optional expiration time (in seconds).
         """
@@ -92,24 +94,7 @@ class TokenService:
         AuthToken.objects.delete_expired()
 
     @staticmethod
-    def extend_token(token: TokenType) -> None:
-        """
-        Extend the expiration of a token (auto-refresh).
-        Only updates last_refreshed_at and expires_at, preserving refresh_until.
-        """
-        now = timezone.now()
-
-        # Check if token is still valid for refreshing (based on its own logic)
-        if token.is_expired:
-            return
-
-        # Update refresh time and expiration
-        token.last_refreshed_at = now
-        token.expires_at = now + authentify_settings.TOKEN_TTL
-        token.save(update_fields=["refresh_until", "last_refreshed_at", "expires_at"])
-
-    @staticmethod
-    def refresh_token(refresh_token: str, expires_in: int) -> TokenType:
+    def refresh_token(refresh_token: str, expires_in: int = None) -> GeneratedToken:
         """
         Refresh an auth token using a valid refresh token.
         Returns (raw_token, raw_refresh_token, new_token_instance), or None if invalid.
@@ -129,7 +114,15 @@ class TokenService:
         auth_type = token.auth_type
 
         # Delete old token
-        token.delete()
+        if authentify_settings.KEEP_EXPIRED_TOKENS:
+            now = timezone.now()
+            old_date = now - timedelta(days=1)
+            token.revoked_at = now
+            token.expires_at = old_date
+            token.refresh_until = old_date
+            token.save(update_fields=["revoked_at", "expires_at", "refresh_until"])
+        else:
+            token.delete()
 
         # Create new token
         return TokenService._generate_auth_token(

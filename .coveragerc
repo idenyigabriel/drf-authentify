@@ -1,9 +1,0 @@
-[run]
-source =
-    drf_authentify
-
-[report]
-# Exclude these from reports
-omit =
-    */migrations/*
-    */__init__.py

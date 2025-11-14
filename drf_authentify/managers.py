@@ -7,6 +7,7 @@ from django.db.models import Model
 from django.db import models, transaction
 
 from drf_authentify.choices import AUTH_TYPES
+from drf_authentify.types import GeneratedToken
 from drf_authentify.utils import generate_token
 from drf_authentify.settings import authentify_settings
 
@@ -63,10 +64,17 @@ class AuthTokenManager(models.Manager):
         auth_type: AUTH_TYPES,
         context: dict = None,
         expires_in: timedelta = None,
-    ) -> Model:
+    ) -> GeneratedToken:
         # Enforce single login — remove existing active tokens
         if authentify_settings.ENFORCE_SINGLE_LOGIN:
-            self.filter(user=user).delete()
+            if authentify_settings.KEEP_EXPIRED_TOKENS:
+                now = timezone.now()
+                old_date = now - timedelta(days=1)
+                self.filter(user=user).update(
+                    revoked_at=now, expires_at=old_date, refresh_until=old_date
+                )
+            else:
+                self.filter(user=user).delete()
 
         now = timezone.now()
 
@@ -99,9 +107,4 @@ class AuthTokenManager(models.Manager):
 
         # Create token
         token = self.create(**token_data)
-
-        # Attach raw token values for external access (e.g., serializer, admin form)
-        token.raw_token = raw_token
-        token.raw_refresh_token = raw_refresh_token
-
-        return token
+        return GeneratedToken(raw_token, raw_refresh_token, token)

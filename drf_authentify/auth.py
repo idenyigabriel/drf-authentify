@@ -1,3 +1,4 @@
+import inspect
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.authentication import BaseAuthentication
 
@@ -23,7 +24,7 @@ class BaseTokenAuth(BaseAuthentication):
         # Verify token
         token = TokenService.verify_token(
             token_str,
-            self.auth_type if authentify_settings.ENFORCE_SINGLE_LOGIN else None,
+            self.auth_type if authentify_settings.ENABLE_AUTH_RESTRICTION else None,
         )
 
         if not token:
@@ -38,22 +39,24 @@ class BaseTokenAuth(BaseAuthentication):
         return (token.user, token)
 
     def _handle_auto_refresh(self, token):
-        if not getattr(authentify_settings, "AUTO_REFRESH", False):
+        if not authentify_settings.AUTO_REFRESH:
             return
 
-        refresh_interval = authentify_settings.AUTO_REFRESH_INTERVAL
-        if not refresh_interval:
-            return  # min interval not reached
-
         elapsed = timezone.now() - token.last_refreshed_at
-        if elapsed < refresh_interval:
+        if elapsed < authentify_settings.AUTO_REFRESH_INTERVAL:
             return  # min TTL not reached, skip refresh
 
-        max_ttl = authentify_settings.AUTO_REFRESH_MAX_TTL
-        if max_ttl and (timezone.now() - token.created_at) > max_ttl:
-            return  # max TTL exceeded
+        now = timezone.now()
+        new_expiry = now + authentify_settings.TOKEN_TTL
+        max_expiry = token.created_at + authentify_settings.AUTO_REFRESH_MAX_TTL
 
-        TokenService.extend_token(token)
+        if new_expiry > max_expiry:
+            return  # max auto refresh TTL exceeded
+
+        token.last_refreshed_at = now
+        token.expires_at = new_expiry
+        token.refresh_until = now + authentify_settings.REFRESH_TOKEN_TTL
+        token.save(update_fields=["expires_at", "refresh_until", "last_refreshed_at"])
 
     def _get_token_from_request(self, request):
         raise NotImplementedError("Subclasses must implement _get_token_from_request")
@@ -66,7 +69,7 @@ class BaseTokenAuth(BaseAuthentication):
         return None
 
     def run_post_auth_handler(self, user, token):
-        handler_path = getattr(authentify_settings, "POST_AUTH_HANDLER", None)
+        handler_path = authentify_settings.POST_AUTH_HANDLER
         if not handler_path:
             return
 
@@ -82,6 +85,14 @@ class BaseTokenAuth(BaseAuthentication):
             raise ImproperlyConfigured(
                 f"DRF_AUTHENTIFY['POST_AUTH_HANDLER'] must be callable. "
                 f"Got {type(handler).__name__}."
+            )
+
+        # Fast argument check
+        sig = inspect.signature(handler)
+        if len(sig.parameters) != 2:
+            raise ImproperlyConfigured(
+                f"DRF_AUTHENTIFY['POST_AUTH_HANDLER'] must accept exactly 2 arguments: "
+                f"user and token. Found {len(sig.parameters)}."
             )
 
         handler(user=user, token=token)

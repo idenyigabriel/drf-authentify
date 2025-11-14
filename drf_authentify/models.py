@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.module_loading import import_string
 
 from drf_authentify.choices import AUTH_TYPES
-from drf_authentify.context import ContextParams
+from drf_authentify.contexts import ContextParams
 from drf_authentify.validators import validate_dict
 from drf_authentify.managers import AuthTokenManager
 from drf_authentify.settings import authentify_settings
@@ -33,7 +33,7 @@ def get_token_model() -> TokenType:
 class AbstractAuthToken(models.Model):
     token = models.CharField(max_length=255, unique=True, db_index=True)
     refresh_token = models.CharField(
-        null=True, blank=True, max_length=255, unique=True, db_index=True
+        null=True, blank=True, unique=True, db_index=True, max_length=255
     )
     auth_type = models.CharField(max_length=12, choices=AUTH_TYPES.choices)
     context = models.JSONField(default=dict, blank=True, validators=[validate_dict])
@@ -41,6 +41,7 @@ class AbstractAuthToken(models.Model):
     refresh_until = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="auth_tokens"
     )
