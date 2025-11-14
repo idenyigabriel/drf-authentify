@@ -1,11 +1,10 @@
-from typing import Self
 from datetime import timedelta
 
 from django.db.models import Q
 from django.utils import timezone
-from django.db.models import Model
 from django.db import models, transaction
 
+from drf_authentify.compat import Self
 from drf_authentify.choices import AUTH_TYPES
 from drf_authentify.types import GeneratedToken
 from drf_authentify.utils import generate_token

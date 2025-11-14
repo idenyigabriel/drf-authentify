@@ -1,11 +1,10 @@
-from typing import Type
-
 from django.apps import apps
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.utils.module_loading import import_string
 
+from drf_authentify.compat import Type
 from drf_authentify.choices import AUTH_TYPES
 from drf_authentify.contexts import ContextParams
 from drf_authentify.validators import validate_dict
