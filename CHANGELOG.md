@@ -1,3 +1,8 @@
+## [0.5.4] - 2025-11-14
+
+### Change
+- drop support for django 3.2
+
 ## [0.5.3] - 2025-11-14
 
 ### Change
