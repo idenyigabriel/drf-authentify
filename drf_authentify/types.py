@@ -1,5 +1,6 @@
-from typing import TYPE_CHECKING
 from dataclasses import dataclass
+
+from drf_authentify.compat import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from drf_authentify.models import TokenType

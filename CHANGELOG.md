@@ -1,3 +1,9 @@
+## [0.5.1] - 2025-11-14
+
+### Change
+- Add compatibility for older python versions for typehinting, older version will use typing_extensions, and newer versions will use typing standard module.
+
+
 ## [0.5] - 2025-11-14
 
 ### Added
@@ -10,6 +16,7 @@
 
 ### Expected
 - Invalidated all project tests, new tests will added shortly.
+
 
 ## [0.4] - 2025-05-05
 
@@ -30,20 +37,24 @@
 ### Docs
 - Updated documentation.
 
+
 ## [0.3.11]
 
 ### Fixed
 - Fixed issue with non-existing document on PyPI.
+
 
 ## [0.3.10]
 
 ### Fixed
 - Fixed error in `TokenAuthentication.authenticate` method (was not updated after `authentication_header` method was changed).
 
+
 ## [0.3.9]
 
 ### Fixed
 - Fixed error in `Auth.authentication_header` method.
+
 
 ## [0.3.8]
 
@@ -54,16 +65,19 @@
 - Auth classes no longer raise errors on failure; responsibility is now delegated to DRF permission classes.
 - Updated `AuthToken.__generate_token()` to return token string instead of token instance.
 
+
 ## [0.3.7]
 
 ### Fixed
 - Fixed condition check in `authenticate_header` method of token auth class.
+
 
 ## [0.3.6]
 
 ### Fixed
 - Fixed auth class accessing the wrong method.
 - Updated `authenticate_header` in auth classes.
+
 
 ## [0.3.5]
 
@@ -73,11 +87,13 @@
 ### Fixed
 - Fixed auth class accessing an invalid variable.
 
+
 ## [0.3.4]
 
 ### Fixed
 - Fixed documentation URLs in `pyproject.toml`.
 - Fixed changelog URLs in `pyproject.toml`.
+
 
 ## [0.3.0]
 
