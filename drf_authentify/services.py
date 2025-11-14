@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+from drf_authentify.compat import Union
 from drf_authentify.choices import AUTH_TYPES
 from drf_authentify.types import GeneratedToken
 from drf_authentify.settings import authentify_settings
@@ -51,7 +52,9 @@ class TokenService:
         )
 
     @staticmethod
-    def verify_token(token: str, auth_type: AUTH_TYPES = None) -> TokenType | None:
+    def verify_token(
+        token: str, auth_type: AUTH_TYPES = None
+    ) -> Union[TokenType, None]:
         """
         Verify if the provided token is valid and not expired.
         """
