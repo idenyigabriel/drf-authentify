@@ -1,3 +1,16 @@
+## [0.5] - 2025-11-14
+
+### Added
+- Full project update
+- New features include AUTH_REFRESH, REFRESH_TOKEN, etc.
+
+### Changed
+- Introduced breaking changes with new version expected to be moved to stable v1.0 after testing.
+- Updated models to reflect new changes.
+
+### Expected
+- Invalidated all project tests, new tests will added shortly.
+
 ## [0.4] - 2025-05-05
 
 ### Changed

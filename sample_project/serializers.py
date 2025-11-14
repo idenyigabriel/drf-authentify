@@ -10,6 +10,10 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(required=True)
 
 
+class RefreshTokenSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField()
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:

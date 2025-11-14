@@ -7,7 +7,11 @@ from django.contrib.auth import get_user_model, authenticate
 
 from sample_project.utils import set_cookie
 from drf_authentify.services import TokenService
-from sample_project.serializers import LoginSerializer, UserSerializer
+from sample_project.serializers import (
+    UserSerializer,
+    LoginSerializer,
+    RefreshTokenSerializer,
+)
 
 
 User = get_user_model()
@@ -38,8 +42,8 @@ class LoginView(APIView):
             # To generate token for cookies, simply use any of the following, same signature as used above also apply
             # to specify contexts and duration.
             # token = TokenService.generate_cookie_token(user)
-            token = TokenService.generate_cookie_token(
-                user, context={"scope": "global", "provider": "google"}, expires_in=3600
+            generated_token = TokenService.generate_cookie_token(
+                user, context={"scope": "global", "provider": "google"}
             )
 
             data = dict()
@@ -47,12 +51,16 @@ class LoginView(APIView):
             data["message"] = "Login successful."
 
             # for header tokens
-            data["data"] = {"token": token, "user": UserSerializer(user).data}
+            data["data"] = {
+                "token": generated_token.token,
+                "refresh_token": generated_token.refresh,
+                "user": UserSerializer(user).data,
+            }
             # return Response(data, status=status.HTTP_200_OK)
 
             # or set as cookie on response for cookie tokens
             response = Response(data, status=status.HTTP_200_OK)
-            return set_cookie(response, token=token)
+            return set_cookie(response, token=generated_token.token)
 
         msg = ["Unable to log in with provided credentials."]
         raise serializers.ValidationError(msg, code="authorization")
@@ -82,6 +90,31 @@ class LogoutView(APIView):
         return set_cookie(response, token="", duration=0)
 
 
+class RefreshTokenView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+        serializer = RefreshTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        refresh_token = serializer.validated_data["refresh_token"]
+        generated_token = TokenService.refresh_token(refresh_token)
+
+        if generated_token:
+
+            data = dict()
+            data["status"] = "success"
+            data["message"] = "Refresh successful."
+            data["data"] = {
+                "token": generated_token.token,
+                "refresh_token": generated_token.refresh,
+            }
+            response = Response(data, status=status.HTTP_204_NO_CONTENT)
+            return set_cookie(response, token="", duration=0)
+
+        msg = ["Refresh failed."]
+        raise serializers.ValidationError(msg, code="authorization")
+
+
 class AccountView(APIView):
     permission_classes = (IsAuthenticated,)
 
@@ -96,6 +129,6 @@ class AccountView(APIView):
 
         data = dict()
         data["status"] = "success"
-        data["message"] = "Logout successful."
+        data["message"] = "Account retrieved successful."
         data["data"] = UserSerializer(request.user).data
         return Response(data, status=status.HTTP_204_NO_CONTENT)
