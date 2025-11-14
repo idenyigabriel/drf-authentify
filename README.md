@@ -61,7 +61,6 @@ DRF_AUTHENTIFY = {
     "TOKEN_EXPIRATION": 3000,
     "ENABLE_AUTH_RESTRICTION": False,
     "STRICT_CONTEXT_PARAMS_ACCESS": False,
-    "MAX_TOKEN_CREATION_ATTEMPTS": 5
 }
 ```
 
@@ -72,7 +71,6 @@ DRF_AUTHENTIFY = {
 - TOKEN_EXPIRATION: Default expiration time (in seconds) for new tokens.
 - ENABLE_AUTH_RESTRICTION: Restricts a token to only its creation channel (header/cookie).
 - STRICT_CONTEXT_PARAMS_ACCESS: Enforces error raising on undefined context_obj keys.
-- MAX_TOKEN_CREATION_ATTEMPTS: The maximum number of times drf_authentify will attempt to generate a unique token before failing. This acts as a failsafe — while Python’s secrets module provides cryptographic randomness, it does not guarantee uniqueness, so this limit ensures we avoid infinite loops in the rare event of a collision.
 
 > **Note:**
 > ⚠️ Don’t forget to allow any custom header prefixes in your CORS settings to avoid CORS errors.
@@ -107,14 +105,14 @@ You can revoke tokens in several ways:
 ```python
 from drf_authentify.services import TokenService
 
-# Revoke token tied to the current request
-TokenService.revoke_token_from_request(request)
-
-# Revoke all tokens for the user in the request
-TokenService.revoke_all_tokens_for_user_from_request(request)
+# Revoke specific token
+TokenService.revoke_token(token_string)
 
 # Revoke all tokens for a specific user
 TokenService.revoke_all_user_tokens(request.user)
+
+# Revoke all expired tokens for a specific user
+TokenService.revoke_all_expired_user_tokens
 
 # Revoke all expired tokens (useful for cleanup)
 TokenService.revoke_expired_tokens()
