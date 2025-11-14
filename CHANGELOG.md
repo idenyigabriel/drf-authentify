@@ -1,3 +1,9 @@
+## [0.5.2] - 2025-11-14
+
+### Change
+- improve compatibility with older python version, use Union over newer syntax |
+- remove library coverage as it seems to have some issues with python 3.9, alternative or different version will be added in future.
+
 ## [0.5.1] - 2025-11-14
 
 ### Change
