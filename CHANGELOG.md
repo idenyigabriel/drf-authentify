@@ -1,3 +1,12 @@
+## [0.5.5] - 2025-11-14
+
+### Added
+- added post_auto_refresh_handler to allow post refresh custom actions without having to overhaul the entire authentication
+
+### Change
+- drop support for django 3.2
+- post_auth_handler and newly added post_auto_refresh_handler now take user, token and token string and return a tuple of user and token to allow for modifications on user or token returned for custom cases.
+
 ## [0.5.4] - 2025-11-14
 
 ### Change

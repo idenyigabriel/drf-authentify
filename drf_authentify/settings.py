@@ -24,6 +24,7 @@ DEFAULTS = {
     "ENABLE_AUTH_RESTRICTION": True,
     "KEEP_EXPIRED_TOKENS": False,
     "POST_AUTH_HANDLER": None,
+    "POST_AUTO_REFRESH_HANDLER": None,
 }
 
 EXPECTED_TYPES = {
@@ -41,6 +42,7 @@ EXPECTED_TYPES = {
     "ENABLE_AUTH_RESTRICTION": bool,
     "KEEP_EXPIRED_TOKENS": bool,
     "POST_AUTH_HANDLER": (str, type(None)),
+    "POST_AUTO_REFRESH_HANDLER": (str, type(None)),
 }
 
 

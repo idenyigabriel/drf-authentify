@@ -34,11 +34,11 @@ class BaseTokenAuth(BaseAuthentication):
         if not token.user.is_active:
             raise AuthenticationFailed(_("User account is inactive or deleted."))
 
-        self._handle_auto_refresh(token)
-        self.run_post_auth_handler(token.user, token)
+        self._handle_auto_refresh(token.user, token, token_str)
+        self.run_post_auth_handler(token.user, token, token_str)
         return (token.user, token)
 
-    def _handle_auto_refresh(self, token):
+    def _handle_auto_refresh(self, user, token, token_str):
         if not authentify_settings.AUTO_REFRESH:
             return
 
@@ -58,6 +58,31 @@ class BaseTokenAuth(BaseAuthentication):
         token.refresh_until = now + authentify_settings.REFRESH_TOKEN_TTL
         token.save(update_fields=["expires_at", "refresh_until", "last_refreshed_at"])
 
+        if handler_path := authentify_settings.POST_AUTO_REFRESH_HANDLER:
+            try:
+                handler = import_string(handler_path)
+            except ImportError as e:
+                raise ImproperlyConfigured(
+                    f"DRF_AUTHENTIFY['POST_AUTO_REFRESH_HANDLER'] is set to '{handler_path}' "
+                    f"but could not be imported: {e}"
+                )
+
+            if not callable(handler):
+                raise ImproperlyConfigured(
+                    f"DRF_AUTHENTIFY['POST_AUTO_REFRESH_HANDLER'] must be callable. "
+                    f"Got {type(handler).__name__}."
+                )
+
+            # Fast argument check
+            sig = inspect.signature(handler)
+            if len(sig.parameters) != 3:
+                raise ImproperlyConfigured(
+                    f"DRF_AUTHENTIFY['POST_AUTO_REFRESH_HANDLER'] must accept exactly 3 arguments: "
+                    f"user, token and token_str. Found {len(sig.parameters)}."
+                )
+            return handler(user, token, token_str)
+        return user, token
+
     def _get_token_from_request(self, request):
         raise NotImplementedError("Subclasses must implement _get_token_from_request")
 
@@ -68,7 +93,7 @@ class BaseTokenAuth(BaseAuthentication):
             return 'Cookie realm="api"'
         return None
 
-    def run_post_auth_handler(self, user, token):
+    def run_post_auth_handler(self, user, token, token_str):
         handler_path = authentify_settings.POST_AUTH_HANDLER
         if not handler_path:
             return
@@ -89,13 +114,13 @@ class BaseTokenAuth(BaseAuthentication):
 
         # Fast argument check
         sig = inspect.signature(handler)
-        if len(sig.parameters) != 2:
+        if len(sig.parameters) != 3:
             raise ImproperlyConfigured(
-                f"DRF_AUTHENTIFY['POST_AUTH_HANDLER'] must accept exactly 2 arguments: "
-                f"user and token. Found {len(sig.parameters)}."
+                f"DRF_AUTHENTIFY['POST_AUTH_HANDLER'] must accept exactly 3 arguments: "
+                f"user, token and token_str. Found {len(sig.parameters)}."
             )
 
-        handler(user=user, token=token)
+        return handler(user=user, token=token, token_str=token_str)
 
 
 class AuthorizationHeaderAuthentication(BaseTokenAuth):
