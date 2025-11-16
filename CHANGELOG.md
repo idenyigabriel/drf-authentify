@@ -1,3 +1,8 @@
+## [0.5.6] - 2025-11-14
+
+### Change
+- TokenService method revoke_token now correctly takes token (can be retrieved from request.auth in views) instead of token_str which is only available after token is created.
+
 ## [0.5.5] - 2025-11-14
 
 ### Added
