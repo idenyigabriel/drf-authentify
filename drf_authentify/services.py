@@ -67,12 +67,11 @@ class TokenService:
         return AuthToken.objects.active().filter(**filters).first()
 
     @staticmethod
-    def revoke_token(token: str) -> None:
+    def revoke_token(token: TokenType) -> None:
         """
         Revoke a single token.
         """
-        hashed_token = generate_token_string_hash(token)
-        AuthToken.objects.filter(token=hashed_token).delete()
+        AuthToken.objects.filter(token=token).delete()
 
     @staticmethod
     def revoke_all_user_tokens(user) -> None:
