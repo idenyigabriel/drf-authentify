@@ -1,3 +1,8 @@
+## [0.5.7] - 2025-11-14
+
+### Change
+- TokenService method refresh_token not formatting custom value expires_in properly before calling generate token internal utility method.
+
 ## [0.5.6] - 2025-11-14
 
 ### Change

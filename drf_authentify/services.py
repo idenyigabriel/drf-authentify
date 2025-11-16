@@ -127,6 +127,7 @@ class TokenService:
             token.delete()
 
         # Create new token
+        expires_timedelta = timedelta(seconds=expires_in) if expires_in else None
         return TokenService._generate_auth_token(
-            user=user, auth_type=auth_type, context=context, expires_in=expires_in
+            user=user, auth_type=auth_type, context=context, expires_in=expires_timedelta
         )
