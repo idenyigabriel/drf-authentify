@@ -34,13 +34,13 @@ class BaseTokenAuth(BaseAuthentication):
         if not token.user.is_active:
             raise AuthenticationFailed(_("User account is inactive or deleted."))
 
-        self._handle_auto_refresh(token.user, token, token_str)
-        self.run_post_auth_handler(token.user, token, token_str)
-        return (token.user, token)
+        user, token = self._handle_auto_refresh(token.user, token, token_str)
+        user, token = self.run_post_auth_handler(token.user, token, token_str)
+        return (user, token)
 
     def _handle_auto_refresh(self, user, token, token_str):
         if not authentify_settings.AUTO_REFRESH:
-            return
+            return user, token
 
         elapsed = timezone.now() - token.last_refreshed_at
         if elapsed < authentify_settings.AUTO_REFRESH_INTERVAL:
@@ -96,7 +96,7 @@ class BaseTokenAuth(BaseAuthentication):
     def run_post_auth_handler(self, user, token, token_str):
         handler_path = authentify_settings.POST_AUTH_HANDLER
         if not handler_path:
-            return
+            return user, token
 
         try:
             handler = import_string(handler_path)
