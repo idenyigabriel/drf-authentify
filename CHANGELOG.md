@@ -1,3 +1,8 @@
+## [0.5.8 - 2025-11-20
+
+### Change
+- Auth class should return user and token from post handlers and refresh handler, incase of modifications.
+
 ## [0.5.7] - 2025-11-14
 
 ### Change
