@@ -5,10 +5,11 @@ from django.utils import timezone
 from django.db import models, transaction
 
 from drf_authentify.compat import Self
+from drf_authentify.compat import Optional
 from drf_authentify.choices import AUTH_TYPES
-from drf_authentify.types import GeneratedToken
-from drf_authentify.utils import generate_token
+from drf_authentify.types import IssuedTokens
 from drf_authentify.settings import authentify_settings
+from drf_authentify.utils.tokens import generate_access_token, generate_refresh_token
 
 
 class AuthTokenQuerySet(models.QuerySet):
@@ -20,7 +21,7 @@ class AuthTokenQuerySet(models.QuerySet):
     def refreshable(self) -> Self:
         """Return tokens that can still be refreshed."""
         return self.filter(
-            refresh_token__isnull=False, refresh_until__gt=timezone.now()
+            refresh_token_hash__isnull=False, refresh_until__gt=timezone.now()
         )
 
     def expired(self) -> Self:
@@ -61,49 +62,49 @@ class AuthTokenManager(models.Manager):
         self,
         user,
         auth_type: AUTH_TYPES,
-        context: dict = None,
-        expires_in: timedelta = None,
-    ) -> GeneratedToken:
-        # Enforce single login — remove existing active tokens
-        if authentify_settings.ENFORCE_SINGLE_LOGIN:
-            if authentify_settings.KEEP_EXPIRED_TOKENS:
-                now = timezone.now()
-                old_date = now - timedelta(days=1)
-                self.filter(user=user).update(
-                    revoked_at=now, expires_at=old_date, refresh_until=old_date
-                )
-            else:
-                self.filter(user=user).delete()
-
+        context: Optional[dict] = None,
+        access_expires_in: Optional[timedelta] = None,
+        refresh_expires_in: Optional[timedelta] = None,
+    ) -> IssuedTokens:
         now = timezone.now()
+        context = context or {}
+
+        # Single-login enforcement
+        if authentify_settings.ENFORCE_SINGLE_LOGIN:
+            qs = self.filter(user=user)
+            if authentify_settings.KEEP_EXPIRED_TOKENS:
+                old_date = now - timedelta(days=1)
+                qs.update(revoked_at=now, expires_at=old_date, refresh_until=old_date)
+            else:
+                qs.delete()
 
         # Compute expiration times
-        ttl = expires_in or authentify_settings.TOKEN_TTL
-        refresh_ttl = authentify_settings.REFRESH_TOKEN_TTL
+        ttl = access_expires_in or authentify_settings.TOKEN_TTL
+        refresh_ttl = refresh_expires_in or authentify_settings.REFRESH_TOKEN_TTL
 
         expires_at = now + ttl if ttl else None
         refresh_until = now + refresh_ttl if refresh_ttl else None
 
         # Generate tokens
-        raw_token, hashed_token = generate_token()
+        raw_token, hashed_token = generate_access_token()
         raw_refresh_token, hashed_refresh_token = (None, None)
 
         token_data = {
             "user": user,
-            "token": hashed_token,
+            "context": context,
             "auth_type": auth_type,
-            "context": context or {},
             "expires_at": expires_at,
             "last_refreshed_at": now,
+            "access_token_hash": hashed_token,
         }
 
-        if refresh_ttl:
-            raw_refresh_token, hashed_refresh_token = generate_token()
+        if refresh_ttl is not None:
+            raw_refresh_token, hashed_refresh_token = generate_refresh_token()
             token_data.update(
                 refresh_until=refresh_until,
-                refresh_token=hashed_refresh_token,
+                refresh_token_hash=hashed_refresh_token,
             )
 
         # Create token
         token = self.create(**token_data)
-        return GeneratedToken(raw_token, raw_refresh_token, token)
+        return IssuedTokens(raw_token, raw_refresh_token, token)

@@ -7,8 +7,8 @@ from django.utils.module_loading import import_string
 from drf_authentify.compat import Type
 from drf_authentify.choices import AUTH_TYPES
 from drf_authentify.contexts import ContextParams
-from drf_authentify.validators import validate_dict
 from drf_authentify.managers import AuthTokenManager
+from drf_authentify.validators import validate_context
 from drf_authentify.settings import authentify_settings
 
 
@@ -30,19 +30,22 @@ def get_token_model() -> TokenType:
 
 
 class AbstractAuthToken(models.Model):
-    token = models.CharField(max_length=255, unique=True, db_index=True)
-    refresh_token = models.CharField(
+    access_token_hash = models.CharField(max_length=255, unique=True, db_index=True)
+    refresh_token_hash = models.CharField(
         null=True, blank=True, unique=True, db_index=True, max_length=255
     )
     auth_type = models.CharField(max_length=12, choices=AUTH_TYPES.choices)
-    context = models.JSONField(default=dict, blank=True, validators=[validate_dict])
+    context = models.JSONField(default=dict, blank=True, validators=[validate_context])
     last_refreshed_at = models.DateTimeField(default=timezone.now)
     refresh_until = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     revoked_at = models.DateTimeField(null=True, blank=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="auth_tokens"
+        settings.AUTH_USER_MODEL,
+        db_index=True,
+        on_delete=models.CASCADE,
+        related_name="auth_tokens",
     )
 
     objects: AuthTokenManager = AuthTokenManager()

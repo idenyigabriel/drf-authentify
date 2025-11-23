@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from drf_authentify.models import get_token_model
 from drf_authentify.forms import AuthTokenAdminForm
+from drf_authentify.utils.tokens import generate_access_token, generate_refresh_token
 
 
 AuthToken = get_token_model()
@@ -32,13 +33,37 @@ class ExpirationStatusFilter(admin.SimpleListFilter):
 @admin.register(AuthToken)
 class AuthTokenAdmin(admin.ModelAdmin):
     form = AuthTokenAdminForm
+    raw_id_fields = ("user",)
     list_filter = (ExpirationStatusFilter, "created_at")
-    search_fields = ("user__" + get_user_model().USERNAME_FIELD,)
-    readonly_fields = ("token", "refresh_token", "last_refreshed_at")
-    list_display = ["user", "auth_type", "is_valid", "expires_at", "created_at"]
+    search_fields = (f"user__{get_user_model().USERNAME_FIELD}",)
+    readonly_fields = ("access_token_hash", "refresh_token_hash", "last_refreshed_at")
+    list_display = [
+        "user",
+        "auth_type",
+        "is_valid",
+        "expires_at",
+        "refresh_until",
+        "created_at",
+    ]
 
     def is_valid(self, obj):
         return not obj.is_expired
 
     is_valid.boolean = True
     is_valid.short_description = _("Valid")
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            raw_token, hashed_token = generate_access_token()
+            obj.access_token_hash = hashed_token
+
+            raw_refresh = None
+            if obj.refresh_until:
+                raw_refresh, hashed_refresh = generate_refresh_token()
+                obj.refresh_token_hash = hashed_refresh
+
+            self.message_user(request, f"🗝 Access Token:\n{raw_token}")
+            if raw_refresh:
+                self.message_user(request, f"🔄 Refresh Token:\n{raw_refresh}")
+
+        return super().save_model(request, obj, form, change)

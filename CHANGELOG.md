@@ -1,3 +1,14 @@
+## [0.6.0 - 2025-11-23
+
+### Added
+- Tests added
+- Update docs reflecting new changes
+
+### Change
+- Optimizations and modifications to several logics.
+- Renamed model fields token to access_token_hash, and refresh_token to refresh_token_hash
+- Return newly created access and refresh token in messages when done through django admin.
+
 ## [0.5.8 - 2025-11-20
 
 ### Change
