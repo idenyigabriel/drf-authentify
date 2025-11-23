@@ -1,4 +1,9 @@
-## [0.6.0 - 2025-11-23
+## [0.6.1] - 2025-11-23
+
+### Change
+- Update pyproject classifiers
+
+## [0.6.0] - 2025-11-23
 
 ### Added
 - Tests added
@@ -9,7 +14,7 @@
 - Renamed model fields token to access_token_hash, and refresh_token to refresh_token_hash
 - Return newly created access and refresh token in messages when done through django admin.
 
-## [0.5.8 - 2025-11-20
+## [0.5.8] - 2025-11-20
 
 ### Change
 - Auth class should return user and token from post handlers and refresh handler, incase of modifications.
