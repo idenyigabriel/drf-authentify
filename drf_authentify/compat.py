@@ -14,7 +14,7 @@ else:
         Self,
         Type,
         Union,
-        Callable,
         Optional,
+        Callable,
         TYPE_CHECKING,
     )  # noqa: F401
