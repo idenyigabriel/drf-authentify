@@ -2,11 +2,11 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from drf_authentify.compat import Union
 from drf_authentify.choices import AUTH_TYPES
-from drf_authentify.types import GeneratedToken
+from drf_authentify.types import IssuedTokens
+from drf_authentify.compat import Union, Optional
 from drf_authentify.settings import authentify_settings
-from drf_authentify.utils import generate_token_string_hash
+from drf_authentify.utils.tokens import hash_token_string
 from drf_authentify.models import TokenType, get_token_model
 
 
@@ -17,38 +17,66 @@ AuthToken = get_token_model()
 class TokenService:
     @staticmethod
     def _generate_auth_token(
-        user, auth_type: AUTH_TYPES, context: dict = None, expires_in: timedelta = None
-    ) -> GeneratedToken:
+        user,
+        auth_type: AUTH_TYPES,
+        context: Optional[dict] = None,
+        access_expires_in: Optional[timedelta] = None,
+        refresh_expires_in: Optional[timedelta] = None,
+    ) -> IssuedTokens:
         """
         Generate and return a token and refresh token (if applicable), based on the auth type and expiration settings.
         Accepts expires_in as a timedelta object.
         """
         return AuthToken.objects.create_token(
-            user, auth_type, context=context, expires_in=expires_in
+            user,
+            auth_type,
+            context=context,
+            access_expires_in=access_expires_in,
+            refresh_expires_in=refresh_expires_in,
         )
 
     @staticmethod
     def generate_cookie_token(
-        user, context: dict = None, expires_in: int = None
-    ) -> GeneratedToken:
+        user,
+        context: Optional[dict] = None,
+        access_expires_in: Optional[int] = None,
+        refresh_expires_in: Optional[int] = None,
+    ) -> IssuedTokens:
         """
         Generate a cookie token with an optional expiration time (in seconds).
         """
-        expires_timedelta = timedelta(seconds=expires_in) if expires_in else None
         return TokenService._generate_auth_token(
-            user, AUTH_TYPES.COOKIE, context=context, expires_in=expires_timedelta
+            user,
+            AUTH_TYPES.COOKIE,
+            context=context,
+            access_expires_in=(
+                timedelta(seconds=access_expires_in) if access_expires_in else None
+            ),
+            refresh_expires_in=(
+                timedelta(seconds=refresh_expires_in) if refresh_expires_in else None
+            ),
         )
 
     @staticmethod
     def generate_header_token(
-        user, context: dict = None, expires_in: int = None
-    ) -> GeneratedToken:
+        user,
+        context: Optional[dict] = None,
+        access_expires_in: Optional[int] = None,
+        refresh_expires_in: Optional[int] = None,
+    ) -> IssuedTokens:
         """
         Generate a header token with an optional expiration time (in seconds).
         """
-        expires_timedelta = timedelta(seconds=expires_in) if expires_in else None
         return TokenService._generate_auth_token(
-            user, AUTH_TYPES.HEADER, context=context, expires_in=expires_timedelta
+            user,
+            AUTH_TYPES.HEADER,
+            context=context,
+            access_expires_in=(
+                timedelta(seconds=access_expires_in) if access_expires_in else None
+            ),
+            refresh_expires_in=(
+                timedelta(seconds=refresh_expires_in) if refresh_expires_in else None
+            ),
         )
 
     @staticmethod
@@ -58,20 +86,22 @@ class TokenService:
         """
         Verify if the provided token is valid and not expired.
         """
-        hashed_token = generate_token_string_hash(token)
-        filters = {"token": hashed_token}
+        hashed_token = hash_token_string(token)
+        filters = {"access_token_hash": hashed_token}
 
         if auth_type:
             filters["auth_type"] = auth_type
 
-        return AuthToken.objects.active().filter(**filters).first()
+        return (
+            AuthToken.objects.active().filter(**filters).select_related("user").first()
+        )
 
     @staticmethod
     def revoke_token(token: TokenType) -> None:
         """
         Revoke a single token.
         """
-        AuthToken.objects.filter(token=token).delete()
+        AuthToken.objects.filter(id=token.id).delete()
 
     @staticmethod
     def revoke_all_user_tokens(user) -> None:
@@ -96,16 +126,22 @@ class TokenService:
         AuthToken.objects.delete_expired()
 
     @staticmethod
-    def refresh_token(refresh_token: str, expires_in: int = None) -> GeneratedToken:
+    def refresh_token(
+        refresh_token: str,
+        access_expires_in: Optional[int] = None,
+        refresh_expires_in: Optional[int] = None,
+    ) -> Optional[IssuedTokens]:
         """
         Refresh an auth token using a valid refresh token.
         Returns (raw_token, raw_refresh_token, new_token_instance), or None if invalid.
         """
-        hashed_refresh = generate_token_string_hash(refresh_token)
+        hashed_refresh = hash_token_string(refresh_token)
 
         # Find the token with the given refresh token that is still valid
         token = (
-            AuthToken.objects.refreshable().filter(refresh_token=hashed_refresh).first()
+            AuthToken.objects.refreshable()
+            .filter(refresh_token_hash=hashed_refresh)
+            .first()
         )
 
         if not token:
@@ -127,7 +163,14 @@ class TokenService:
             token.delete()
 
         # Create new token
-        expires_timedelta = timedelta(seconds=expires_in) if expires_in else None
         return TokenService._generate_auth_token(
-            user=user, auth_type=auth_type, context=context, expires_in=expires_timedelta
+            user,
+            auth_type,
+            context=context,
+            access_expires_in=(
+                timedelta(seconds=access_expires_in) if access_expires_in else None
+            ),
+            refresh_expires_in=(
+                timedelta(seconds=refresh_expires_in) if refresh_expires_in else None
+            ),
         )

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class GeneratedToken:
-    token: str
-    refresh: str
-    instance: "TokenType"
+class IssuedTokens:
+    access_token: str
+    refresh_token: str
+    token_instance: "TokenType"

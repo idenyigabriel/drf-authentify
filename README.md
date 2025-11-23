@@ -1,91 +1,45 @@
 # 🔒 DRF Authentify
 
-**Reimagined Authentication for Django Rest Framework**
+[![Build Status](https://github.com/idenyigabriel/drf-authentify/actions/workflows/test.yml/badge.svg)](https://github.com/idenyigabriel/drf-authentify/actions/workflows/test.yml)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-A powerful, modern, and highly flexible token-based authentication library for Django Rest Framework (DRF), completely re-engineered for simplicity, security, and modularity.
-
----
-
-## ✨ Why drf-authentify?
-
-`drf-authentify` provides a superior replacement for DRF's default token system with features tailored for modern web and mobile applications:
-
-### 🔑 Multiple Active Tokens
-Unlike traditional systems that force single-device sessions, `drf-authentify` allows users to maintain **multiple active tokens simultaneously**. This enables seamless authentication across:
-- 📱 Mobile apps
-- 🌐 Web browsers  
-- 💻 Desktop clients
-
-**No more forced logouts** when users switch devices!
-
-### 🛡️ Contextual Security
-Every token stores rich, session-specific metadata in a `context` JSONField:
-
-```python
-{
-    "ip_address": "192.168.1.1",
-    "user_agent": "Mozilla/5.0...",
-    "device_id": "iPhone-12-XYZ",
-    "beta_access": true
-}
-```
-
-This enables:
-- **Granular authorization** based on device or location
-- **Session monitoring** and analytics
-- **Targeted token revocation** (e.g., revoke only mobile sessions)
-- **Feature flags** per session
-
-### 🔄 Auto Token Refresh
-Balance security and user experience with **automatic token renewal**:
-
-- Tokens refresh seamlessly during active use
-- No forced re-login for active users
-- Configurable refresh intervals and maximum lifespans
-- Security enforced through `AUTO_REFRESH_MAX_TTL`
-
-Users stay authenticated while you maintain strict security policies.
-
-### 🧱 Modular Architecture
-Clean separation of concerns makes the codebase:
-- **Easy to audit** - Clear module boundaries
-- **Simple to debug** - Isolated functionality
-- **Highly extensible** - Swap or customize any component
+**Modern token authentication for Django Rest Framework with multi-device support, auto-refresh, and session context.**
 
 ---
 
-## 📦 Installation
+## Why Choose DRF Authentify?
 
-### Requirements
-- Python ≥ 3.8
-- Django ≥ 3.2
-- Django REST Framework ≥ 3.0
+DRF Authentify reimagines token authentication for modern applications. Unlike DRF's default token system, it provides:
 
-### Install via pip
+- **Multi-device sessions** - Users stay logged in across mobile, web, and desktop simultaneously
+- **Session context** - Store device info, IP addresses, and custom metadata with each token
+- **Auto-refresh** - Tokens renew automatically during active use
+- **Flexible security** - Choose between single-login enforcement or multiple active sessions
+- **Production-ready** - Secure token hashing, expiration management, and audit trails
+
+---
+
+## Installation
 
 ```bash
 pip install drf-authentify
 ```
 
+**Requirements:** Python ≥ 3.9, Django ≥ 3.2, Django REST Framework ≥ 3.0
+
 ---
 
-## ⚙️ Quick Setup
+## Quick Start
 
-### 1. Add to Installed Apps
+### 1. Add to Your Project
 
 ```python
 # settings.py
 
 INSTALLED_APPS = [
-    # ... other apps
+    # ... your apps
     'drf_authentify',
 ]
-```
-
-### 2. Configure DRF Authentication
-
-```python
-# settings.py
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -95,455 +49,591 @@ REST_FRAMEWORK = {
 }
 ```
 
-### 3. Run Migrations
+### 2. Run Migrations
 
 ```bash
 python manage.py migrate
 ```
 
-This creates the `AuthToken` model with fields for access tokens, refresh tokens, context, and expiration tracking.
-
----
-
-## 🛠️ Configuration
-
-Customize behavior by adding a `DRF_AUTHENTIFY` dictionary to your `settings.py`. All time values use `datetime.timedelta` for clarity.
-
-### Basic Configuration
-
-```python
-# settings.py
-from datetime import timedelta
-
-# defaults
-DRF_AUTHENTIFY = {
-    "TOKEN_TTL": timedelta(hours=12),
-    "REFRESH_TOKEN_TTL": timedelta(days=1),
-    "AUTO_REFRESH": False,
-    "AUTO_REFRESH_MAX_TTL": timedelta(days=30),
-    "AUTO_REFRESH_INTERVAL": timedelta(hours=1),
-    "TOKEN_MODEL": "drf_authentify.AuthToken",
-    "AUTH_COOKIE_NAMES": ["token"],
-    "AUTH_HEADER_PREFIXES": ["Bearer", "Token"],
-    "SECURE_HASH_ALGORITHM": "sha256",
-    "ENFORCE_SINGLE_LOGIN": True,
-    "STRICT_CONTEXT_ACCESS": False,
-    "ENABLE_AUTH_RESTRICTION": True,
-    "KEEP_EXPIRED_TOKENS": False,
-    "POST_AUTH_HANDLER": None,
-}
-```
-
-### All Available Settings and Descriptions
-
-| Setting | Type | Description |
-|---------|------|-------------|
-| `TOKEN_MODEL` | `str` | Path to custom token model (default: built-in `AuthToken`) |
-| `TOKEN_TTL` | `timedelta` | Access token lifespan (e.g., 12 hours) |
-| `REFRESH_TOKEN_TTL` | `timedelta` | Refresh token lifespan. Must be > `TOKEN_TTL` |
-| `AUTO_REFRESH` | `bool` | Enable automatic token renewal |
-| `AUTO_REFRESH_INTERVAL` | `timedelta` | Minimum time between auto refreshes (prevents excessive DB updates) |
-| `AUTO_REFRESH_MAX_TTL` | `timedelta` | Maximum token age before forced expiry |
-| `AUTH_HEADER_PREFIXES` | `list[str]` | Valid Authorization header prefixes |
-| `AUTH_COOKIE_NAMES` | `list[str]` | Cookie keys to check for tokens |
-| `SECURE_HASH_ALGORITHM` | `str` | Hashing algorithm for token storage (default: `"sha256"`) |
-| `ENABLE_AUTH_RESTRICTION` | `bool` | If `True`, cookie tokens can't be used in headers (and vice versa) |
-| `ENFORCE_SINGLE_LOGIN` | `bool` | If `True`, new tokens revoke all previous user tokens |
-| `KEEP_EXPIRED_TOKENS` | `bool` | Keep revoked tokens for audit logging (requires `ENFORCE_SINGLE_LOGIN`) |
-| `STRICT_CONTEXT_ACCESS` | `bool` | If `True`, accessing undefined context keys raises `KeyError` |
-| `POST_AUTH_HANDLER` | `str` | Path to custom function called after successful authentication |
-
-### Settings Validation
-
-The library automatically validates your configuration on startup:
-
-- ✅ **Type checking** - Ensures values match expected types
-- ✅ **Algorithm verification** - Confirms hash algorithm exists in `hashlib`
-- ✅ **Logical integrity** - Validates relationships (e.g., `REFRESH_TOKEN_TTL > TOKEN_TTL`)
-
----
-
-## 📖 Usage Guide
-
-### Creating Tokens
-
-Use `TokenService` to generate tokens programmatically *(where context and expires_in are optional)*:
+### 3. Create Your First Token
 
 ```python
 from drf_authentify.services import TokenService
 
-# Generate a header token
+# In your login view
 token_set = TokenService.generate_header_token(
     user=request.user,
     context={
         "device": "mobile",
-        "app_version": "2.1.0",
         "ip_address": request.META.get('REMOTE_ADDR')
-    },
-    expires_in=3600  # Override default TTL (in seconds)
-)
-
-# OR 
-
-# Generate a cookie token
-token_set = TokenService.generate_cookie_token(
-    user=request.user,
-    context={
-        "device": "mobile",
-        "app_version": "2.1.0",
-        "ip_address": request.META.get('REMOTE_ADDR')
-    },
-    expires_in=3600  # Override default TTL (in seconds)
+    }
 )
 
 # Return to client
-response_data = {
-    'access_token': token_set.token,      # Raw token string
-    'refresh_token': token_set.refresh,   # Raw refresh token
+return Response({
+    'access_token': token_set.access_token,
+    'refresh_token': token_set.refresh_token,
+})
+```
+
+Your API is now protected! Clients authenticate by sending:
+
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+## Core Concepts
+
+### Multi-Device Authentication
+
+Users can maintain multiple active sessions across different devices. Each token stores its own context:
+
+```python
+# Mobile login
+mobile_token = TokenService.generate_header_token(
+    user=user,
+    context={"device": "iPhone", "app_version": "2.1"}
+)
+
+# Web login (doesn't invalidate mobile token)
+web_token = TokenService.generate_header_token(
+    user=user,
+    context={"device": "Chrome", "browser_version": "120"}
+)
+```
+
+To enforce single-device login instead:
+
+```python
+# settings.py
+DRF_AUTHENTIFY = {
+    'ENFORCE_SINGLE_LOGIN': True,
 }
 ```
 
-The `generate_header_token` method returns a `GeneratedToken` object with:
+### Session Context
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `token` | `str` | Raw access token (send to client) |
-| `refresh` | `str` | Raw refresh token (send to client) |
-| `instance` | `AuthToken` | Database model instance |
-
-### Refreshing Tokens
-
-Implement a token refresh endpoint:
+Store custom metadata with each token for authorization decisions:
 
 ```python
-from rest_framework import status
+token_set = TokenService.generate_header_token(
+    user=user,
+    context={
+        "device_id": "abc-123",
+        "location": "US",
+        "beta_features": True,
+        "subscription_tier": "premium"
+    }
+)
+
+# Access in your views
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def premium_feature(request):
+    if not request.auth.context_obj.beta_features:
+        return Response({'error': 'Beta access required'}, status=403)
+    
+    # request.auth is the token instance
+    device = request.auth.context_obj.device_id
+    return Response({'message': f'Hello from {device}!'})
+```
+
+### Token Refresh
+
+Implement a refresh endpoint to issue new access tokens without re-authentication:
+
+```python
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-
 from drf_authentify.services import TokenService
 
-
 class TokenRefreshView(APIView):
-    authentication_classes = [AllowAny]  # No auth required for refresh
+    permission_classes = []  # No auth required
     
     def post(self, request):
         refresh_token = request.data.get('refresh_token')
         
         if not refresh_token:
-            return Response(
-                {'error': 'refresh_token required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': 'refresh_token required'}, status=400)
         
-        # Attempt to refresh the token
-        # optionally provide expires_in to override default TOKEN_TTL here.
-        new_token_set = TokenService.refresh_token(refresh_token,  expires_in: int = None)
+        new_token_set = TokenService.refresh_token(refresh_token)
         
         if new_token_set:
             return Response({
-                'access_token': new_token_set.token,
-                'refresh_token': new_token_set.refresh,
+                'access_token': new_token_set.access_token,
+                'refresh_token': new_token_set.refresh_token,
             })
-        else:
-            return Response(
-                {'error': 'Invalid or expired refresh token'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        
+        return Response({'error': 'Invalid refresh token'}, status=401)
 ```
 
-**Security Note:** The old token is automatically revoked when a refresh succeeds, preventing token reuse attacks.
+**Security:** Old tokens are automatically revoked when refreshed.
 
-### Accessing Token Context
+### Auto-Refresh
 
-Access session metadata in your views:
+Enable automatic token renewal for active users:
 
 ```python
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+# settings.py
+from datetime import timedelta
 
+DRF_AUTHENTIFY = {
+    'AUTO_REFRESH': True,
+    'AUTO_REFRESH_INTERVAL': timedelta(hours=1),     # Minimum time between refreshes
+    'AUTO_REFRESH_MAX_TTL': timedelta(days=7),       # Force re-login after 7 days
+    'TOKEN_TTL': timedelta(hours=12),
+    'REFRESH_TOKEN_TTL': timedelta(days=7),
+}
+```
+
+With this enabled, tokens automatically renew during API requests, keeping active users logged in.
+
+---
+
+## Configuration
+
+Configure behavior by adding `DRF_AUTHENTIFY` to your `settings.py`:
+
+```python
+from datetime import timedelta
+
+DRF_AUTHENTIFY = {
+    # Token Lifespans
+    'TOKEN_TTL': timedelta(hours=24),              # Access token duration
+    'REFRESH_TOKEN_TTL': timedelta(days=7),        # Refresh token duration
+    
+    # Auto-Refresh Settings
+    'AUTO_REFRESH': False,                         # Enable automatic renewal
+    'AUTO_REFRESH_INTERVAL': timedelta(hours=1),   # Min time between refreshes
+    'AUTO_REFRESH_MAX_TTL': timedelta(days=7),     # Max token age before forced re-login
+    
+    # Authentication Behavior
+    'ENFORCE_SINGLE_LOGIN': False,                 # Revoke old tokens on new login
+    'ENABLE_AUTH_RESTRICTION': True,               # Prevent cookie tokens in headers (and vice versa)
+    
+    # Security
+    'SECURE_HASH_ALGORITHM': 'sha256',             # Token hashing algorithm
+    'AUTH_HEADER_PREFIXES': ['Bearer', 'Token'],   # Allowed header prefixes
+    'AUTH_COOKIE_NAMES': ['token'],                # Cookie names to check
+    
+    # Audit & Cleanup
+    'KEEP_EXPIRED_TOKENS': False,                  # Retain expired tokens for audit logs
+    
+    # Advanced
+    'STRICT_CONTEXT_ACCESS': False,                # Raise errors for undefined context keys
+    'TOKEN_MODEL': 'drf_authentify.AuthToken',     # Custom token model path
+    'POST_AUTH_HANDLER': None,                     # Custom post-authentication function
+    'POST_AUTO_REFRESH_HANDLER': None,             # Custom post-refresh function
+}
+```
+
+### Key Settings Explained
+
+| Setting | Description |
+|---------|-------------|
+| `TOKEN_TTL` | How long access tokens remain valid. Set to `None` for no expiration. |
+| `REFRESH_TOKEN_TTL` | How long refresh tokens remain valid. Must be greater than `TOKEN_TTL`. Set to `None` to disable refresh tokens. |
+| `AUTO_REFRESH` | When `True`, tokens automatically renew during API requests. Requires `AUTO_REFRESH_INTERVAL` and `AUTO_REFRESH_MAX_TTL`. |
+| `AUTO_REFRESH_MAX_TTL` | Maximum token age before requiring full re-authentication, even with auto-refresh enabled. |
+| `ENFORCE_SINGLE_LOGIN` | When `True`, creating a new token revokes all existing user tokens. |
+| `ENABLE_AUTH_RESTRICTION` | When `True`, tokens created for cookies can't be used in headers and vice versa. |
+| `KEEP_EXPIRED_TOKENS` | When `True`, expired tokens remain in the database for audit purposes (useful with `ENFORCE_SINGLE_LOGIN`). |
+
+---
+
+## Common Tasks
+
+### Creating Tokens
+
+**For header-based authentication (mobile/API clients):**
+
+```python
+from drf_authentify.services import TokenService
+
+token_set = TokenService.generate_header_token(
+    user=user,
+    context={"device": "mobile"},
+    access_expires_in=3600,   # Optional: override TOKEN_TTL (in seconds)
+    refresh_expires_in=7200   # Optional: override REFRESH_TOKEN_TTL (in seconds)
+)
+```
+
+**For cookie-based authentication (web browsers):**
+
+```python
+token_set = TokenService.generate_cookie_token(
+    user=user,
+    context={"browser": "Chrome"},
+    access_expires_in=3600,   # Optional: override TOKEN_TTL (in seconds)
+    refresh_expires_in=7200   # Optional: override REFRESH_TOKEN_TTL (in seconds)
+)
+
+# Set as httpOnly cookie in response
+response.set_cookie(
+    'token',
+    token_set.access_token,
+    httponly=True,
+    secure=True,
+    samesite='Strict'
+)
+```
+
+### Accessing Token Information
+
+In your views, `request.auth` provides the token instance:
+
+```python
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def protected_view(request):
+def profile_view(request):
     # Access context data
     device = request.auth.context_obj.device
-    app_version = request.auth.context_obj.app_version
     
-    # Check token expiration
+    # Check expiration
     if request.auth.is_expired:
         return Response({'error': 'Token expired'}, status=401)
     
+    # Access token metadata
+    created = request.auth.created_at
+    expires = request.auth.expires_at
+    
     return Response({
-        'message': f'Authenticated from {device}',
-        'version': app_version
+        'user': request.user.username,
+        'device': device,
+        'token_created': created
     })
 ```
-
-**Note:** If `STRICT_CONTEXT_ACCESS=False`, accessing undefined keys returns `None` instead of raising `KeyError`.
 
 ### Revoking Tokens
 
 ```python
-# Revoke all tokens for a user
 from drf_authentify.services import TokenService
 
-# revoke single token
-TokenService.revoke_token(token_instance)
+# Revoke a specific token
+TokenService.revoke_token(request.auth)
 
-# revoke all user tokens
-TokenService.revoke_all_user_tokens(user_instance)
+# Revoke all tokens for a user (force logout everywhere)
+TokenService.revoke_all_user_tokens(user)
 
-# revoke all expired user tokens
-TokenService.revoke_all_expired_user_tokens(user_instance)
+# Revoke all expired tokens for a user
+TokenService.revoke_all_expired_user_tokens(user)
 
-
-# revoke all expired tokens
+# Clean up all expired tokens (run as scheduled task)
 TokenService.revoke_expired_tokens()
 ```
 
-**Note:** token instance is accessible via request.auth
+### Verifying Tokens Manually
+
+```python
+from drf_authentify.services import TokenService
+
+token_instance = TokenService.verify_token(
+    token_str="abc123...",
+    auth_type="header"  # or "cookie"
+)
+
+if token_instance:
+    user = token_instance.user
+    # Token is valid
+else:
+    # Invalid or expired token
+    pass
+```
 
 ---
 
-## 🏗️ Architecture Overview
+## Advanced Usage
 
-### Models (`drf_authentify.models`)
+### Custom Token Models
 
-**`AuthToken`** - Core database model (inherits from `AbstractAuthToken`)
-
-```python
-class AuthToken(AbstractAuthToken):
-    user = ForeignKey(User)           # Associated user
-    token = CharField()               # Hashed access token
-    refresh_token = CharField()       # Hashed refresh token
-    context = JSONField()             # Session metadata
-    created_at = DateTimeField()      # Token creation time
-    expires_at = DateTimeField()      # Token expiration time
-    refresh_expires_at = DateTimeField()  # Refresh token expiration
-```
-
-**Customizing Token Models:**
+Extend the base token model with additional fields:
 
 ```python
 # myapp/models.py
 from drf_authentify.models import AbstractAuthToken
 
 class CustomAuthToken(AbstractAuthToken):
-    last_ip = GenericIPAddressField()
-    two_factor_verified = BooleanField(default=False)
+    last_used_ip = models.GenericIPAddressField(null=True)
+    two_factor_verified = models.BooleanField(default=False)
     
+    class Meta:
+        db_table = 'custom_auth_tokens'
+```
+
+Then configure it:
+
+```python
 # settings.py
 DRF_AUTHENTIFY = {
     'TOKEN_MODEL': 'myapp.CustomAuthToken',
 }
 ```
 
-### Authentication Classes (`drf_authentify.auth`)
+### Post-Authentication Hooks
 
-**`AuthorizationHeaderAuthentication`** - Checks `Authorization` header
-
-```python
-# Validates: Authorization: Bearer <token>
-# Checks prefixes: AUTH_HEADER_PREFIXES setting
-```
-
-**`CookieAuthentication`** - Checks request cookies
+Execute custom logic after authentication or token refresh:
 
 ```python
-# Checks cookie names: AUTH_COOKIE_NAMES setting
+# myapp/handlers.py
+def my_post_auth_handler(user, token, token_str):
+    """Called after successful authentication"""
+    # Update last login IP
+    token.last_used_ip = token.context.get('ip_address')
+    token.save()
+    
+    # Must return (user, token) tuple
+    return user, token
+
+def my_post_refresh_handler(user, token, token_str):
+    """Called after successful token refresh"""
+    # Log refresh event
+    logger.info(f"Token refreshed for {user.username}")
+    return user, token
 ```
 
-Both classes handle:
-- Token lookup and validation
-- Expiration checking
-- Auto-refresh (if enabled)
-- Context restrictions (if enabled)
-
-### Services (`drf_authentify.services`)
-
-**`TokenService`** - High-level business logic API
-
-| Method | Description |
-|--------|-------------|
-| `generate_header_token(user, context, expires_in)` | Create token for header auth |
-| `generate_cookie_token(user, context, expires_in)` | Create token for cookie auth |
-| `refresh_token(refresh_token_str)` | Refresh an existing token |
-| `verify_token(token_str, auth_type)` | Verify token |
-| `revoke_token(token_str)` | Manually revoke a token |
-| `revoke_all_user_tokens(user)` | Manually revoke all user token |
-| `revoke_all_expired_user_tokens(user)` | Manually revoke all expired user tokens |
-| `revoke_expired_tokens(token_str)` | Manually revoke all expired tokens |
-
-### Security (`drf_authentify.utils`)
-
-- **`generate_token_string_hash()`** - Creates cryptographically secure tokens using `secrets.token_urlsafe`
-- **Zero raw storage** - Only hashed tokens stored in database
-- **Configurable algorithms** - Use any `hashlib` algorithm
-
-**Why hashing matters:** If your database is compromised, attackers cannot use stored hashes to authenticate.
-
-### Validation (`drf_authentify.validators`)
-
-**`validate_dict`** - Ensures `context` field only accepts valid dictionaries, preventing serialization errors.
-
----
-
-## 🔒 Security Best Practices
-
-### 1. Token Storage (Client-Side)
-
-**Mobile Apps:**
-```javascript
-// Use secure storage
-import SecureStorage from 'react-native-secure-storage';
-
-await SecureStorage.setItem('access_token', token);
-```
-
-**Web Apps:**
-```javascript
-// Use httpOnly cookies (set server-side)
-// Never store tokens in localStorage!
-```
-
-### 2. HTTPS Only
+Configure in settings:
 
 ```python
 # settings.py
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_SSL_REDIRECT = True
+DRF_AUTHENTIFY = {
+    'POST_AUTH_HANDLER': 'myapp.handlers.my_post_auth_handler',
+    'POST_AUTO_REFRESH_HANDLER': 'myapp.handlers.my_post_refresh_handler',
+}
 ```
 
-### 3. Token Extension
+Both handlers receive:
+- `user` - The authenticated user instance
+- `token` - The token instance (AuthToken or your custom model)
+- `token_str` - The raw token string
 
-Enable auto-refresh with reasonable limits:
+Both must return a tuple: `(user, token)`
+
+### Context-Based Authorization
+
+Implement custom permissions based on token context:
+
+```python
+from rest_framework.permissions import BasePermission
+
+class RequireMobileDevice(BasePermission):
+    def has_permission(self, request, view):
+        if not request.auth:
+            return False
+        return request.auth.context_obj.device == "mobile"
+
+# Use in views
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, RequireMobileDevice])
+def mobile_only_feature(request):
+    return Response({'message': 'Mobile exclusive content'})
+```
+
+---
+
+## Security Best Practices
+
+### 1. Always Use HTTPS in Production
+
+```python
+# settings.py
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+```
+
+### 2. Store Tokens Securely on Clients
+
+**Mobile apps:** Use secure storage (Keychain, Keystore)
+**Web apps:** Use httpOnly cookies, never localStorage
+
+```javascript
+// ❌ DON'T: Store in localStorage
+localStorage.setItem('token', token);
+
+// ✅ DO: Let server set httpOnly cookie
+// Or use secure storage in mobile apps
+```
+
+### 3. Implement Rate Limiting
+
+Protect authentication endpoints:
+
+```python
+# Using django-ratelimit
+from django_ratelimit.decorators import ratelimit
+
+@ratelimit(key='ip', rate='5/m', method='POST')
+def login_view(request):
+    # Your login logic
+    pass
+```
+
+### 4. Monitor Suspicious Activity
+
+Use context data to detect anomalies:
+
+```python
+def check_location_change(request):
+    """Alert if token used from different location"""
+    stored_ip = request.auth.context_obj.ip_address
+    current_ip = request.META.get('REMOTE_ADDR')
+    
+    if stored_ip != current_ip:
+        # Log suspicious activity
+        logger.warning(f"IP mismatch for {request.user}: {stored_ip} -> {current_ip}")
+```
+
+### 5. Set Appropriate Token Lifespans
+
+Balance security and user experience:
+
+```python
+DRF_AUTHENTIFY = {
+    # Short-lived access tokens
+    'TOKEN_TTL': timedelta(hours=1),
+    
+    # Longer refresh tokens
+    'REFRESH_TOKEN_TTL': timedelta(days=7),
+    
+    # Force full re-auth weekly
+    'AUTO_REFRESH_MAX_TTL': timedelta(days=7),
+}
+```
+
+---
+
+## Troubleshooting
+
+### Tokens Not Working After Migration
+
+Run migrations and restart your server:
+
+```bash
+python manage.py migrate drf_authentify
+python manage.py runserver
+```
+
+### "Invalid Token" Errors
+
+Check that:
+1. The token exists and hasn't expired
+2. The correct authentication class is configured
+3. The token hash algorithm matches your settings
+4. The token is sent with the correct prefix (`Bearer` or `Token`)
+
+### Auto-Refresh Not Triggering
+
+Ensure all three settings are configured:
 
 ```python
 DRF_AUTHENTIFY = {
     'AUTO_REFRESH': True,
-    'AUTO_REFRESH_INTERVAL': timedelta(hours=1),  # Don't refresh too often
-    'AUTO_REFRESH_MAX_TTL': timedelta(days=7),    # Force re-login after 7 days
+    'AUTO_REFRESH_INTERVAL': timedelta(hours=1),
+    'AUTO_REFRESH_MAX_TTL': timedelta(days=7),
 }
 ```
 
-### 4. Context-Based Validation
+### Context Data Not Available
+
+Make sure you're accessing `request.auth.context_obj`, not `request.auth.context`:
 
 ```python
-# In a view or custom permission
-# ideally, you can also use the POST_AUTH_HANDLER, where user and token are provided to perform this glovally
-def check_device_binding(request):
-    stored_device = request.auth.context_obj.device_id
-    current_device = request.META.get('HTTP_X_DEVICE_ID')
+# ✅ Correct
+device = request.auth.context_obj.device
+
+# ❌ Wrong
+device = request.auth.context.device
+```
+
+---
+
+## Example: Complete Login/Logout Flow
+
+```python
+from rest_framework import status
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.contrib.auth import authenticate
+from drf_authentify.services import TokenService
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
     
-    if stored_device != current_device:
-        raise PermissionDenied("Device mismatch detected")
-```
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        user = authenticate(username=username, password=password)
+        if not user:
+            return Response({'error': 'Invalid credentials'}, status=401)
+        
+        # Generate token with context
+        token_set = TokenService.generate_header_token(
+            user=user,
+            context={
+                'device': request.data.get('device', 'unknown'),
+                'ip_address': request.META.get('REMOTE_ADDR'),
+                'user_agent': request.META.get('HTTP_USER_AGENT', '')
+            }
+        )
+        
+        return Response({
+            'access_token': token_set.access_token,
+            'refresh_token': token_set.refresh_token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        })
 
-### 5. Monitor and Audit
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        # Revoke current token
+        TokenService.revoke_token(request.auth)
+        return Response({'message': 'Logged out successfully'})
 
-Keep expired tokens for security audits:
-
-```python
-DRF_AUTHENTIFY = {
-    'ENFORCE_SINGLE_LOGIN': False,
-    'KEEP_EXPIRED_TOKENS': True,  # Retain for forensics
-}
-```
-
----
-
-## 🎯 Common Use Cases
-
-### Multi-Device Support
-
-```python
-# User can be logged in on multiple devices simultaneously
-phone_token = TokenService.generate_header_token(
-    user=user,
-    context={"device": "mobile", "device_id": "abc123"}
-)
-
-laptop_token = TokenService.generate_header_token(
-    user=user,
-    context={"device": "laptop", "device_id": "xyz789"}
-)
-```
-
-### Feature Flags per Session
-
-```python
-# Enable beta features for specific tokens
-beta_token = TokenService.generate_header_token(
-    user=user,
-    context={"beta_access": True, "features": ["new_ui", "advanced_search"]}
-)
-
-# In view:
-if request.auth.context_obj.beta_access:
-    return beta_feature_response()
-```
-
-### Geographic Restrictions
-
-```python
-# Store location on token creation
-token = TokenService.generate_header_token(
-    user=user,
-    context={"country": "US", "ip": request.META['REMOTE_ADDR']}
-)
-
-# Validate in view:
-if request.auth.context_obj.country != "US":
-    raise PermissionDenied("Service not available in your region")
-```
-
-### Single Login Enforcement
-
-```python
-# Force single active session (revoke old tokens on new login)
-DRF_AUTHENTIFY = {
-    'ENFORCE_SINGLE_LOGIN': True,
-}
+class LogoutAllDevicesView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        # Revoke all user tokens
+        TokenService.revoke_all_user_tokens(request.user)
+        return Response({'message': 'Logged out from all devices'})
 ```
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We welcome contributions! Here's how to get started:
+We welcome contributions! To get started:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork the repository on GitHub
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Make your changes with tests
+4. Run the test suite
+5. Submit a pull request
 
-Please ensure:
-- ✅ Tests pass
-- ✅ Code follows PEP 8
-- ✅ Documentation is updated
+Please ensure your code follows PEP 8 and includes appropriate tests.
 
 ---
 
-## 📝 License
+## License
 
-This project is licensed under the **BSD-3-Clause License**. See the [LICENSE](LICENSE) file for details.
-
----
-
-## 🔗 Resources
-
-- **Documentation:** [Coming Soon]
-- **Issue Tracker:** [GitHub Issues](https://github.com/yourusername/drf-authentify/issues)
-- **PyPI:** [https://pypi.org/project/drf-authentify/](https://pypi.org/project/drf-authentify/)
+Licensed under the **BSD-3-Clause License**. See [LICENSE](LICENSE) for details.
 
 ---
 
-## ⭐ Show Your Support
+## Resources
 
-If you find this library helpful, please consider giving it a star on GitHub!
+- **GitHub:** [github.com/idenyigabriel/drf-authentify](https://github.com/idenyigabriel/drf-authentify)
+- **PyPI:** [pypi.org/project/drf-authentify](https://pypi.org/project/drf-authentify/)
+- **Issues:** [GitHub Issues](https://github.com/idenyigabriel/drf-authentify/issues)
 
 ---
 
