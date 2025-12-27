@@ -1,3 +1,10 @@
+## [0.6.2] - 2025-12-27
+
+### Change
+- Decouple AuthToken: Removed the user reverse relationship to enforce direct model filtering and prevent architectural leaks.
+- Restructure: Moved AbstractAuthToken to base/models for a more logical project hierarchy.
+- Admin Update: Switched admin form fields to __all__ to automatically capture inherited fields from the User model.
+
 ## [0.6.1] - 2025-11-23
 
 ### Change

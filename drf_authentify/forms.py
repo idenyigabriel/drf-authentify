@@ -11,7 +11,7 @@ AuthToken = get_token_model()
 class AuthTokenAdminForm(forms.ModelForm):
     class Meta:
         model = AuthToken
-        fields = ["user", "auth_type", "context", "expires_at", "refresh_until"]
+        fields = "__all__"
 
     def clean(self) -> dict:
         cleaned_data = super().clean()
