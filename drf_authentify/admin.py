@@ -3,13 +3,11 @@ from django.contrib import admin
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from django.contrib.admin.sites import AlreadyRegistered
 
 from drf_authentify.models import get_token_model
 from drf_authentify.forms import AuthTokenAdminForm
 from drf_authentify.utils.tokens import generate_access_token, generate_refresh_token
-
-
-AuthToken = get_token_model()
 
 
 class ExpirationStatusFilter(admin.SimpleListFilter):
@@ -30,7 +28,6 @@ class ExpirationStatusFilter(admin.SimpleListFilter):
         return queryset
 
 
-@admin.register(AuthToken)
 class AuthTokenAdmin(admin.ModelAdmin):
     form = AuthTokenAdminForm
     raw_id_fields = ("user",)
@@ -67,3 +64,15 @@ class AuthTokenAdmin(admin.ModelAdmin):
                 self.message_user(request, f"🔄 Refresh Token:\n{raw_refresh}")
 
         return super().save_model(request, obj, form, change)
+
+
+def register_token_admin():
+    AuthToken = get_token_model()
+
+    try:
+        admin.site.register(AuthToken, AuthTokenAdmin)
+    except AlreadyRegistered:
+        pass
+
+
+register_token_admin()

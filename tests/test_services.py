@@ -213,7 +213,7 @@ class TokenServiceTests(TestCase):
         self.assertTrue(AuthToken.objects.filter(pk=self.active_token.pk).exists())
         self.assertFalse(AuthToken.objects.filter(pk=self.expired_token.pk).exists())
 
-    @patch("drf_authentify.models.AuthTokenManager.delete_expired")
+    @patch("drf_authentify.base.models.AuthTokenManager.delete_expired")
     def test_revoke_expired_tokens(self, mock_delete_expired):
         """Should call the manager's delete_expired method."""
         TokenService.revoke_expired_tokens()
